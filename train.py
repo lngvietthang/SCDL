@@ -34,14 +34,11 @@ model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
 
 #Print SGD step time
 
-print "Index in train data NAN:"
-for i in range(len(X_train)):
-  c = model.ce_error(X_train[i], y_train[i])
-  if c<0.001:
-    print i
-#print ('loss x[10]: %f'%c)
+#
 t1 = time.time()
 model.sgd_step(X_train[10], y_train[10], LEARNING_RATE)
+c = model.ce_error(X_train[10], y_train[10])
+print ('loss x[10]: %f'%c)
 t2 = time.time()
 print "SGD Step time: %f milliseconds" % ((t2 - t1) * 1000.)
 sys.stdout.flush()

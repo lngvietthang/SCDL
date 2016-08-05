@@ -128,9 +128,7 @@ def load_data_from_json2(path_to_json, test_split, vocabulary_size):
 def testing(model, X_test):
     predict_y_test=[]
     for i in range(len(X_test)):
-        predict_test=[]
-        for j in range(1,len(X_test[i])):
-            predict_test.append(model.predict_class(X_test[i], predict_test[j-1]))
+        predict_test=model.predict_class(X_test[i])
         predict_y_test.append(predict_test)
     return predict_y_test
 
