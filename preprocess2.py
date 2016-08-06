@@ -143,7 +143,7 @@ def compute_f1(y_test, predict_test):
             if y_test[i][y] == predict_test[i][y] and y_test[i][y] == 1:
                 num_True+=1
             if y_test[i][y] in [1,2]:
-                num_predict+=1
+                num_test+=1
             if predict_test[i][y] in [1,2]:
                 num_predict+=1
         f1[0]+=num_True
