@@ -30,7 +30,7 @@ if not MODEL_OUTPUT_FILE:
 # Build model
 print '\nBuild model'
 #model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
-model = load_model_parameters_theano('/home/nhitt/Dropbox/Compression_lstm/rnn-tutorial-gru-lstm/GRU-2016-08-05-13-48-2000-50-100.dat.npz')
+model = load_model_parameters_theano('GRU-2016-08-05-13-48-2000-50-100.dat.npz')
 
 #Print SGD step time
 print 'S2q'
