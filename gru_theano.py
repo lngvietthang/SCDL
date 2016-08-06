@@ -14,7 +14,7 @@ class GRUTheano:
         self.bptt_truncate = bptt_truncate
         # Initialize the network parameters
         E = np.random.uniform(-np.sqrt(1./word_dim), np.sqrt(1./word_dim), (hidden_dim-3, word_dim))
-        Ey_encode = np.zeros(3,3)
+        Ey_encode = np.zeros(3)
         Ey_decode = np.identity(3)
         U = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (12, hidden_dim, hidden_dim))
         W = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (12, hidden_dim, hidden_dim))
@@ -23,7 +23,8 @@ class GRUTheano:
         c = np.zeros(3)
         # Theano: Created shared variables
         self.E = theano.shared(name='E', value=E.astype(theano.config.floatX))
-        self.Ey = theano.shared(name='Ey', value=Ey.astype(theano.config.floatX))
+        self.Ey_encode = theano.shared(name='Ey_encode', value=Ey_encode.astype(theano.config.floatX))
+        self.Ey_decode = theano.shared(name='Ey_decode', value=Ey_decode.astype(theano.config.floatX))
         self.U = theano.shared(name='U', value=U.astype(theano.config.floatX))
         self.W = theano.shared(name='W', value=W.astype(theano.config.floatX))
         self.V = theano.shared(name='V', value=V.astype(theano.config.floatX))
@@ -31,7 +32,8 @@ class GRUTheano:
         self.c = theano.shared(name='c', value=c.astype(theano.config.floatX))
         # SGD / rmsprop: Initialize parameters
         self.mE = theano.shared(name='mE', value=np.zeros(E.shape).astype(theano.config.floatX))
-        self.mEy = theano.shared(name='mEy', value=np.zeros(Ey.shape).astype(theano.config.floatX))
+        self.mEy_encode = theano.shared(name='mEy_encode', value=np.zeros(Ey_encode.shape).astype(theano.config.floatX))
+        self.mEy_decode = theano.shared(name='mEy_decode', value=np.zeros(Ey_decode.shape).astype(theano.config.floatX))
         self.mU = theano.shared(name='mU', value=np.zeros(U.shape).astype(theano.config.floatX))
         self.mV = theano.shared(name='mV', value=np.zeros(V.shape).astype(theano.config.floatX))
         self.mW = theano.shared(name='mW', value=np.zeros(W.shape).astype(theano.config.floatX))
@@ -42,7 +44,7 @@ class GRUTheano:
         self.__theano_build__()
     
     def __theano_build__(self):
-        E, Ey, V, U, W, b, c = self.E, self.Ey, self.V, self.U, self.W, self.b, self.c
+        E, Ey_encode, Ey_decode, V, U, W, b, c = self.E, self.Ey_encode, self.Ey_decode, self.V, self.U, self.W, self.b, self.c
         
         x = T.ivector('x')
         y = T.ivector('y')
@@ -53,8 +55,7 @@ class GRUTheano:
             
             # Word embedding layer
             x_e = E[:,x_t]
-            y_e = Ey_encode[:,x_t]
-            xy_e = theano.tensor.concatenate([x_e,y_e], axis=0)
+            xy_e = theano.tensor.concatenate([x_e,Ey_encode], axis=0)
 
             #Encode   #LSTM Layer 1
             # i=z, f=r, add o,
@@ -163,7 +164,7 @@ class GRUTheano:
             # Theano's softmax returns a matrix with one row, we only need the row
             o_test = T.nnet.softmax(V.dot(s_t3_d_test) + c)[0]
 
-            return [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d]
+            return [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test]
         
         [s_t1, s_t2, s_t3, c_t1, c_t2, c_t3], updates = theano.scan(
             forward_prop_step_encode,
@@ -177,7 +178,7 @@ class GRUTheano:
                           dict(initial=T.zeros(self.hidden_dim))])
         [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
             forward_prop_step_decode,
-            sequences=[x,[T.zeros(3)]+y[:-1]],
+            sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0)],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
                           dict(initial=s_t1[-1]),
@@ -200,7 +201,7 @@ class GRUTheano:
                           dict(initial=c_t3[-1])])
         
         prediction = T.argmax(o_test, axis=1)
-        o_error = T.sum(T.nnet.categorical_crossentropy(o_test, y))
+        o_error = T.sum(T.nnet.categorical_crossentropy(o, y))
         
         # Total cost (could add regularization here)
         cost = o_error
@@ -214,7 +215,7 @@ class GRUTheano:
         dc = T.grad(cost, c)
         
         # Assign functions
-        self.predict = theano.function([x], o)
+        self.predict = theano.function([x], o_test)
         self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], cost)
         self.bptt = theano.function([x, y], [dE, dU, dW, db, dV, dc])

@@ -132,17 +132,21 @@ def testing(model, X_test):
         predict_y_test.append(predict_test)
     return predict_y_test
 
-def compute_f1(y_test, predict_test, len_sent):
+def compute_f1(y_test, predict_test):
     f1=[0,0,0,0,0,[]]
     num_error=0
     y_test=np.argmax(y_test,axis=2)
-    for i in range(len(len_sent)):
-        num_True=0
-        for y in range(len_sent[i]):
+    for i in range(len(y_test)):
+        num_True = 0
+        num_predict = 0
+        num_test = 0
+        for y in range(1,len(y_test[i])):
             if y_test[i][y] == predict_test[i][y] and y_test[i][y] == 1:
                 num_True+=1
-        num_predict=sum(predict_test[i][:len_sent[i]])
-        num_test = sum(y_test[i][:len_sent[i]])
+            if y_test[i][y] in [1,2]:
+                num_predict+=1
+            if predict_test[i][y] in [1,2]:
+                num_predict+=1
         f1[0]+=num_True
         f1[1]+=num_predict
         f1[2]+=num_test
@@ -155,8 +159,8 @@ def compute_f1(y_test, predict_test, len_sent):
 
         f1[3]+=f1_sent
 
-        f1[4]+=len_sent[i]
-        f1[5].append((i, f1_sent, predict_test[i][:len_sent[i]], y_test[i][:len_sent[i]]))
+        f1[4]+=len(y_test[i])
+        f1[5].append((i, f1_sent, predict_test[i], y_test[i]))
     f1[3] = f1[3] / (len(y_test) - num_error)
     if (len(y_test)-num_error) ==0:
         print ('----- All predicts are zero -----')

@@ -14,13 +14,13 @@ LEARNING_RATE = float(os.environ.get("LEARNING_RATE", "0.001"))
 VOCABULARY_SIZE = int(os.environ.get("VOCABULARY_SIZE", "2000"))
 EMBEDDING_DIM = int(os.environ.get("EMBEDDING_DIM", "50"))
 HIDDEN_DIM = int(os.environ.get("HIDDEN_DIM", "100"))
-NEPOCH = int(os.environ.get("NEPOCH", "2"))
+NEPOCH = int(os.environ.get("NEPOCH", "20"))
 MODEL_OUTPUT_FILE = os.environ.get("MODEL_OUTPUT_FILE")
 INPUT_DATA_FILE = os.environ.get("INPUT_DATA_FILE", '../Data/Filippova/compression-data.json')
 PRINT_EVERY = int(os.environ.get("PRINT_EVERY", "1000"))
 
+ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
 if not MODEL_OUTPUT_FILE:
-  ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
   MODEL_OUTPUT_FILE = "GRU-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
 
 # Load data
@@ -33,8 +33,7 @@ model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
 #model = load_model_parameters_theano('./data/pretrained.npz')
 
 #Print SGD step time
-
-#
+print 'S2q'
 t1 = time.time()
 model.sgd_step(X_train[10], y_train[10], LEARNING_RATE)
 c = model.ce_error(X_train[10], y_train[10])
@@ -54,18 +53,19 @@ def sgd_callback(model, num_examples_seen):
   print("\n")
   sys.stdout.flush()
 
-t1 = time.time()
+t3 = time.time()
 for epoch in range(NEPOCH):
   print('Epoch %d: ' % epoch)
   train_with_sgd(model, X_train, y_train, learning_rate=LEARNING_RATE, nepoch=1, decay=0.9,
     callback_every=PRINT_EVERY, callback=sgd_callback)
-t2 = time.time()
-print "SGD Train time: %f" % ((t2 - t1))
+t4 = time.time()
+print "SGD Train time: %f" % ((t4 - t3))
 sys.stdout.flush()
 
 print 'Testing...'
 predict_test = testing(model, X_test)
-print 'Compute f1:...'
-f1 = compute_f1(y_test, predict_test)
-write_output('./Output_seq2seq_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
+np.save("GRU-%s-%s-%s-%s.predict" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM), predict_test)
+#print 'Compute f1:...'
+#f1 = compute_f1(y_test, predict_test)
+#write_output('./Output_seq2seq_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
 
