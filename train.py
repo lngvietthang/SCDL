@@ -62,12 +62,11 @@ model = load_model_parameters_theano('GRU-2016-08-05-13-48-2000-50-100.dat.npz')
 # print "SGD Train time: %f" % ((t4 - t3))
 # sys.stdout.flush()
 # #
-# print 'Testing...'
-# predict_test = testing(model, X_test)
-# np.save("GRU-%s-%s-%s-%s.predict" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM), predict_test)
+print 'Testing...'
+predict_test = testing(model, X_test)
+np.save("GRU-%s-%s-%s-%s.predict" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM), predict_test)
 
 print 'Compute f1:...'
-predict_test = np.load("GRU-%s-%s-%s-%s.predict" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM))
 f1 = compute_f1(y_test, predict_test)
 write_output('./Output_seq2seq_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
 
