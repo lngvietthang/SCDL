@@ -135,7 +135,6 @@ def testing(model, X_test):
 def compute_f1(y_test, predict_test):
     f1=[0,0,0,0,0,[]]
     num_error=0
-    y_test=np.argmax(y_test,axis=2)
     for i in range(len(y_test)):
         num_True = 0
         num_predict = 0
