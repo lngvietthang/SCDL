@@ -4,7 +4,7 @@ import sys
 import os
 import time
 import numpy as np
-from utils_bidirection import *
+from utils_t_attention import *
 from datetime import datetime
 from t_attention_theano import GRUTheano
 from preprocess2 import load_data_from_json2, compute_f1, write_output, testing
