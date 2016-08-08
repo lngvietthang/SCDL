@@ -48,7 +48,7 @@ class GRUTheano:
 
         x = T.ivector('x')
         y = T.ivector('y')
-        k = T.iscalar("k")
+        k = T.iscalar('k')
 
         def forward_prop_step_encode_backward(x_t, s_t1_prev_b, s_t2_prev_b, s_t3_prev_b, c_t1_prev_b, c_t2_prev_b, c_t3_prev_b):
             # This is how we calculated the hidden state in a simple RNN. No longer!
