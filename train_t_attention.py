@@ -16,7 +16,7 @@ EMBEDDING_DIM = int(os.environ.get("EMBEDDING_DIM", "50"))
 HIDDEN_DIM = int(os.environ.get("HIDDEN_DIM", "100"))
 NEPOCH = int(os.environ.get("NEPOCH", "20"))
 MODEL_OUTPUT_FILE = os.environ.get("MODEL_OUTPUT_FILE")
-INPUT_DATA_FILE = os.environ.get("INPUT_DATA_FILE", '../Data/Filippova/compression-data.json')
+INPUT_DATA_FILE = os.environ.get("INPUT_DATA_FILE", '../Data/Filippova/compression-data-100k.json')
 PRINT_EVERY = int(os.environ.get("PRINT_EVERY", "1000"))
 
 ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
