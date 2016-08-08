@@ -48,6 +48,7 @@ class GRUTheano:
 
         x = T.ivector('x')
         y = T.ivector('y')
+        k = T.iscalar("k")
 
         def forward_prop_step_encode_backward(x_t, s_t1_prev_b, s_t2_prev_b, s_t3_prev_b, c_t1_prev_b, c_t2_prev_b, c_t3_prev_b):
             # This is how we calculated the hidden state in a simple RNN. No longer!
@@ -133,9 +134,9 @@ class GRUTheano:
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
             #Add s_xt to s_t_pre
-            s_t1_prev_d = s_t1_prev_d * s_t1_matrix[x_t]
-            s_t2_prev_d = s_t2_prev_d * s_t2_matrix[x_t]
-            s_t3_prev_d = s_t3_prev_d * s_t3_matrix[x_t]
+            s_t1_prev_d = s_t1_prev_d * s_t1_matrix[k]
+            s_t2_prev_d = s_t2_prev_d * s_t2_matrix[k]
+            s_t3_prev_d = s_t3_prev_d * s_t3_matrix[k]
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + b[0])
@@ -177,9 +178,9 @@ class GRUTheano:
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
             #Add s_xt to s_t_pre
-            s_t1_prev_d_test = s_t1_prev_d_test * s_t1_matrix[x_t]
-            s_t2_prev_d_test = s_t2_prev_d_test * s_t2_matrix[x_t]
-            s_t3_prev_d_test = s_t3_prev_d_test * s_t3_matrix[x_t]
+            s_t1_prev_d_test = s_t1_prev_d_test * s_t1_matrix[k]
+            s_t2_prev_d_test = s_t2_prev_d_test * s_t2_matrix[k]
+            s_t3_prev_d_test = s_t3_prev_d_test * s_t3_matrix[k]
 
             # Decode   #LSTM Layer 1
             i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + b[0])
@@ -236,6 +237,7 @@ class GRUTheano:
             forward_prop_step_decode,
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0), s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
+            n_steps=k,
             outputs_info=[None,
                           dict(initial=s_t1[-1]),
                           dict(initial=s_t2[-1]),
@@ -248,6 +250,7 @@ class GRUTheano:
             forward_prop_step_decode_test,
             sequences=[x, s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
+            n_steps=k,
             outputs_info=[dict(initial=T.zeros(3)),
                           dict(initial=s_t1[-1]),
                           dict(initial=s_t2[-1]),
