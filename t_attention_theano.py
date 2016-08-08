@@ -124,7 +124,7 @@ class GRUTheano:
 
             return [s_t1, s_t2, s_t3, c_t1, c_t2, c_t3]
 
-        def forward_prop_step_decode(x_t, y_t, s_t1_matrix, s_t2_matrix, s_t3_matrix, s_t1_prev_d, s_t2_prev_d, s_t3_prev_d, c_t1_prev_d, c_t2_prev_d, c_t3_prev_d):
+        def forward_prop_step_decode(x_t, y_t, k, s_t1_matrix, s_t2_matrix, s_t3_matrix, s_t1_prev_d, s_t2_prev_d, s_t3_prev_d, c_t1_prev_d, c_t2_prev_d, c_t3_prev_d):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
 
@@ -137,6 +137,8 @@ class GRUTheano:
             s_t1_prev_d = s_t1_prev_d * s_t1_matrix[k]
             s_t2_prev_d = s_t2_prev_d * s_t2_matrix[k]
             s_t3_prev_d = s_t3_prev_d * s_t3_matrix[k]
+
+            k+=1
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + b[0])
@@ -166,9 +168,9 @@ class GRUTheano:
             # Theano's softmax returns a matrix with one row, we only need the row
             o = T.nnet.softmax(V.dot(s_t3_d) + c)[0]
 
-            return [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d]
+            return [o, k, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d]
 
-        def forward_prop_step_decode_test(x_t, o_t_pre_test, s_t1_matrix, s_t2_matrix, s_t3_matrix, s_t1_prev_d_test, s_t2_prev_d_test, s_t3_prev_d_test, c_t1_prev_d_test, c_t2_prev_d_test, c_t3_prev_d_test):
+        def forward_prop_step_decode_test(x_t, o_t_pre_test, k, s_t1_matrix, s_t2_matrix, s_t3_matrix, s_t1_prev_d_test, s_t2_prev_d_test, s_t3_prev_d_test, c_t1_prev_d_test, c_t2_prev_d_test, c_t3_prev_d_test):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
 
@@ -181,6 +183,8 @@ class GRUTheano:
             s_t1_prev_d_test = s_t1_prev_d_test * s_t1_matrix[k]
             s_t2_prev_d_test = s_t2_prev_d_test * s_t2_matrix[k]
             s_t3_prev_d_test = s_t3_prev_d_test * s_t3_matrix[k]
+
+            k+=1
 
             # Decode   #LSTM Layer 1
             i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + b[0])
@@ -210,7 +214,7 @@ class GRUTheano:
             # Theano's softmax returns a matrix with one row, we only need the row
             o_test = T.nnet.softmax(V.dot(s_t3_d_test) + c)[0]
 
-            return [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test]
+            return [o_test, k, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test]
 
         [s_t1_b, s_t2_b, s_t3_b, c_t1_b, c_t2_b, c_t3_b], updates = theano.scan(
             forward_prop_step_encode_backward,
@@ -233,12 +237,12 @@ class GRUTheano:
                           dict(initial=c_t1_b[-1]),
                           dict(initial=c_t2_b[-1]),
                           dict(initial=c_t3_b[-1])])
-        [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
+        [o, k, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
             forward_prop_step_decode,
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0), s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
-            n_steps=k,
             outputs_info=[None,
+                          dict(initial=0),
                           dict(initial=s_t1[-1]),
                           dict(initial=s_t2[-1]),
                           dict(initial=s_t3[-1]),
@@ -246,12 +250,11 @@ class GRUTheano:
                           dict(initial=c_t2[-1]),
                           dict(initial=c_t3[-1])])
 
-        [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test], updates = theano.scan(
+        [o_test, k, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test], updates = theano.scan(
             forward_prop_step_decode_test,
             sequences=[x, s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
-            n_steps=k,
-            outputs_info=[dict(initial=T.zeros(3)),
+            outputs_info=[dict(initial=0),
                           dict(initial=s_t1[-1]),
                           dict(initial=s_t2[-1]),
                           dict(initial=s_t3[-1]),
