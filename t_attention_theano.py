@@ -235,7 +235,7 @@ class GRUTheano:
         [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
             forward_prop_step_decode,
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0)],
-            nonsequences = [s_t1, s_t2, s_t3],
+            non_sequences=[s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
                           dict(initial=s_t1[-1]+s_t1_b[-1]),
@@ -248,7 +248,7 @@ class GRUTheano:
         [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test], updates = theano.scan(
             forward_prop_step_decode_test,
             sequences=x,
-            nonsequences=[s_t1, s_t2, s_t3],
+            non_sequences=[s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(3)),
                           dict(initial=s_t1[-1]+s_t1_b[-1]),
