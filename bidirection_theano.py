@@ -49,6 +49,41 @@ class GRUTheano:
         x = T.ivector('x')
         y = T.ivector('y')
 
+        def forward_prop_step_encode_backward(x_t, s_t1_prev_b, s_t2_prev_b, s_t3_prev_b, c_t1_prev_b, c_t2_prev_b, c_t3_prev_b):
+            # This is how we calculated the hidden state in a simple RNN. No longer!
+            # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
+
+            # Word embedding layer
+            x_e_b = E[:,x_t]
+            xy_e_b = theano.tensor.concatenate([x_e_b,Ey_encode], axis=0)
+
+            #Encode   #LSTM Layer 1
+            # i=z, f=r, add o,
+            i_t1_b = T.nnet.hard_sigmoid(U[0].dot(xy_e_b) + W[0].dot(s_t1_prev_b) + b[0])
+            f_t1_b = T.nnet.hard_sigmoid(U[1].dot(xy_e_b) + W[1].dot(s_t1_prev_b) + b[1])
+            o_t1_b = T.nnet.hard_sigmoid(U[2].dot(xy_e_b) + W[2].dot(s_t1_prev_b) + b[2])
+            g_t1_b = T.tanh(U[3].dot(xy_e_b) + W[3].dot(s_t1_prev_b) + b[3])
+            c_t1_b = c_t1_prev_b*f_t1_b + g_t1_b*i_t1_b
+            s_t1_b = T.tanh(c_t1_b)*o_t1_b
+
+            # LSTM Layer 2
+            i_t2_b = T.nnet.hard_sigmoid(U[4].dot(s_t1_b) + W[4].dot(s_t2_prev_b) + b[4])
+            f_t2_b = T.nnet.hard_sigmoid(U[5].dot(s_t1_b) + W[5].dot(s_t2_prev_b) + b[5])
+            o_t2_b = T.nnet.hard_sigmoid(U[6].dot(s_t1_b) + W[6].dot(s_t2_prev_b) + b[6])
+            g_t2_b = T.tanh(U[7].dot(s_t1_b) + W[7].dot(s_t2_prev_b) + b[7])
+            c_t2_b = c_t2_prev_b * f_t2_b + g_t2_b * i_t2_b
+            s_t2_b = T.tanh(c_t2_b) * o_t2_b
+
+            # LSTM Layer 3
+            i_t3_b = T.nnet.hard_sigmoid(U[8].dot(s_t2_b) + W[8].dot(s_t3_prev_b) + b[8])
+            f_t3_b = T.nnet.hard_sigmoid(U[9].dot(s_t2_b) + W[9].dot(s_t3_prev_b) + b[9])
+            o_t3_b = T.nnet.hard_sigmoid(U[10].dot(s_t2_b) + W[10].dot(s_t3_prev_b) + b[10])
+            g_t3_b = T.tanh(U[11].dot(s_t2_b) + W[11].dot(s_t3_prev_b) + b[11])
+            c_t3_b = c_t3_prev_b * f_t3_b + g_t3_b * i_t3_b
+            s_t3_b = T.tanh(c_t3_b) * o_t3_b
+
+            return [s_t1_b, s_t2_b, s_t3_b, c_t1_b, c_t2_b, c_t3_b]
+
         def forward_prop_step_encode(x_t, s_t1_prev, s_t2_prev, s_t3_prev, c_t1_prev, c_t2_prev, c_t3_prev):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
@@ -166,9 +201,20 @@ class GRUTheano:
 
             return [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test]
 
+        [s_t1_b, s_t2_b, s_t3_b, c_t1_b, c_t2_b, c_t3_b], updates = theano.scan(
+            forward_prop_step_encode_backward,
+            sequences=x[::-1], #reverse y
+            truncate_gradient=self.bptt_truncate,
+            outputs_info=[dict(initial=T.zeros(self.hidden_dim)),
+                          dict(initial=T.zeros(self.hidden_dim)),
+                          dict(initial=T.zeros(self.hidden_dim)),
+                          dict(initial=T.zeros(self.hidden_dim)),
+                          dict(initial=T.zeros(self.hidden_dim)),
+                          dict(initial=T.zeros(self.hidden_dim))])
+
         [s_t1, s_t2, s_t3, c_t1, c_t2, c_t3], updates = theano.scan(
             forward_prop_step_encode,
-            sequences=x[::-1], #reverse y
+            sequences=x,
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(self.hidden_dim)),
                           dict(initial=T.zeros(self.hidden_dim)),
@@ -181,24 +227,24 @@ class GRUTheano:
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0)],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
-                          dict(initial=s_t1[-1]),
-                          dict(initial=s_t2[-1]),
-                          dict(initial=s_t3[-1]),
-                          dict(initial=c_t1[-1]),
-                          dict(initial=c_t2[-1]),
-                          dict(initial=c_t3[-1])])
+                          dict(initial=s_t1[-1]+s_t1_b[-1]),
+                          dict(initial=s_t2[-1]+s_t2_b[-1]),
+                          dict(initial=s_t3[-1]+s_t3_b[-1]),
+                          dict(initial=c_t1[-1]+c_t1_b[-1]),
+                          dict(initial=c_t2[-1]+c_t2_b[-1]),
+                          dict(initial=c_t3[-1]+c_t3_b[-1])])
 
         [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test], updates = theano.scan(
             forward_prop_step_decode_test,
             sequences=x,
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(3)),
-                          dict(initial=s_t1[-1]),
-                          dict(initial=s_t2[-1]),
-                          dict(initial=s_t3[-1]),
-                          dict(initial=c_t1[-1]),
-                          dict(initial=c_t2[-1]),
-                          dict(initial=c_t3[-1])])
+                          dict(initial=s_t1[-1]+s_t1_b[-1]),
+                          dict(initial=s_t2[-1]+s_t2_b[-1]),
+                          dict(initial=s_t3[-1]+s_t3_b[-1]),
+                          dict(initial=c_t1[-1]+c_t1_b[-1]),
+                          dict(initial=c_t2[-1]+c_t2_b[-1]),
+                          dict(initial=c_t3[-1]+c_t3_b[-1])])
 
         prediction = T.argmax(o_test, axis=1)
         o_error = T.sum(T.nnet.categorical_crossentropy(o, y))

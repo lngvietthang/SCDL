@@ -27,6 +27,7 @@ if not MODEL_OUTPUT_FILE:
 #x_train, y_train, word_to_index, index_to_word = load_data(INPUT_DATA_FILE, VOCABULARY_SIZE)
 (X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (original_sentence_text, compression_sentence_text) = load_data_from_json2(INPUT_DATA_FILE,  0.2, VOCABULARY_SIZE)
 
+'''
 # Build model
 print '\nBuild model'
 model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
@@ -65,7 +66,9 @@ sys.stdout.flush()
 print 'Testing...'
 predict_test = testing(model, X_test)
 np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
-
+'''
+predict_test=np.load("GRU-2016-08-06-08-17-8000-50-100.dat.predict.npy")
 print 'Compute f1:...'
 f1 = compute_f1(y_test, predict_test)
 write_output('./Output_seq2seq_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
+

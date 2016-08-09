@@ -7,7 +7,7 @@ import os
 from itertools import izip
 import nltk.data
 import numpy as np
-from keras.preprocessing import sequence
+#from keras.preprocessing import sequence
 from numpy import array
 import itertools
 import math
@@ -23,7 +23,8 @@ def word2vec(sent, word2index_dict):
     :param maxlen: max len of sentence in dataset
     :return: vector of sentence (list vector of words)
     '''
-    words_in_sent = ["%s %s" % (SENTENCE_START_TOKEN, x) for x in nltk.word_tokenize(sent)]
+    sent = "%s %s" % (SENTENCE_START_TOKEN, sent)
+    words_in_sent = [x for x in nltk.word_tokenize(sent)]
     i = len(words_in_sent)
     array_sent=[0]*i
     sample_weight = [0]*i
@@ -41,14 +42,14 @@ def label_compress(sent, comp):
     :param comp: compressed sentence
     :return: list of label (0 or 1) of each word of sentence
     '''
-    words_in_sent = ["%s %s" % (SENTENCE_START_TOKEN, x) for x in nltk.word_tokenize(sent)]
+    sent = "%s %s" % (SENTENCE_START_TOKEN, sent)
+    words_in_sent = [x for x in nltk.word_tokenize(sent)]
     i = len(words_in_sent)
     l= [0]*i
     for j in range(i):
         if words_in_sent[j].lower() in [comp_word.lower() for comp_word in nltk.word_tokenize(comp)]:
             l[j] = 1
-        l[0]=2
-    #print ('sent:%s\ncomp:%s\nl:%s'%(sent, comp, l))
+    l[0]=2
     return (l,i)
 
 # read json input
@@ -85,10 +86,11 @@ def word2index(json_objects, vocabulary_size):
     word_freq = nltk.FreqDist(itertools.chain(*tokenized_sentences))
     #print "Found %d unique words tokens." % len(word_freq.items())
     # Get the most common words and build index_to_word and word_to_index vectors
-    vocab = word_freq.most_common(vocabulary_size - 1)
+    vocab = word_freq.most_common(vocabulary_size - 2)
     index_to_word = [x[0] for x in vocab]
     index_to_word.append(unknown_token)
     index_to_word.append(sentence_start_token)
+    #print(len(index_to_word))
     word_to_index = dict([(w, i) for i, w in enumerate(index_to_word)])
     return (word_to_index, index_to_word)
 
@@ -135,6 +137,7 @@ def testing(model, X_test):
 def compute_f1(y_test, predict_test):
     f1=[0,0,0,0,0,[]]
     num_error=0
+    num_f1_0 = 0
     for i in range(len(y_test)):
         num_True = 0
         num_predict = 0
@@ -142,20 +145,23 @@ def compute_f1(y_test, predict_test):
         for y in range(1,len(y_test[i])):
             if y_test[i][y] == predict_test[i][y] and y_test[i][y] == 1:
                 num_True+=1
-            if y_test[i][y] in [1,2]:
+            if y_test[i][y] ==1:
                 num_test+=1
-            if predict_test[i][y] in [1,2]:
+            if predict_test[i][y] ==1:
                 num_predict+=1
         f1[0]+=num_True
         f1[1]+=num_predict
         f1[2]+=num_test
-        precision = num_True/num_predict
-        recall = num_True/num_test
-        f1_sent= 2*(precision*recall)/(precision+recall)
+        if num_True ==0:
+            f1_sent = 0
+            num_f1_0+=1
+        else:
+            precision = num_True/num_predict
+            recall = num_True/num_test
+            f1_sent= 2*(precision*recall)/(precision+recall)
         if math.isnan(f1_sent):
             f1_sent=0
             num_error+=1
-
         f1[3]+=f1_sent
 
         f1[4]+=len(y_test[i])
@@ -165,6 +171,7 @@ def compute_f1(y_test, predict_test):
         print ('----- All predicts are zero -----')
     else:
         print ('Total: %d - Error sentences: %d = %d'%(len(y_test), num_error, len(y_test)-num_error))
+        print ('No. sent F1 is 0: %d'%num_f1_0)
         print (f1[3])
         return f1
 
