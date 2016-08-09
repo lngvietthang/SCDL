@@ -18,7 +18,7 @@ class GRUTheano:
         Ey_decode = np.identity(3)
         U = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (12, hidden_dim, hidden_dim))
         W = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (12, hidden_dim, hidden_dim))
-        WA = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (2, 1 , hidden_dim))
+        WA = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (2, hidden_dim, 1))
         UA = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (12, hidden_dim, hidden_dim))
         V = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (3, hidden_dim))
         b = np.zeros((12, hidden_dim))
@@ -138,17 +138,17 @@ class GRUTheano:
             y_e = Ey_decode[:,y_t]
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
-            a_t1 = s_t1_prev_d*WA[1] + M_t1
+            a_t1 = s_t1_prev_d*WA[1] + M_t1 #(len,1)
             a_t1 = T.nnet.softmax(a_t1)
-            r_t1 = He_1*(a_t1).T
+            r_t1 = (a_t1).T*He_1
 
             a_t2 = s_t2_prev_d*WA[1] + M_t2
             a_t2 = T.nnet.softmax(a_t2)
-            r_t2 = He_2*(a_t2).T
+            r_t2 = (a_t2).T*He_2
 
             a_t3 = s_t3_prev_d*WA[1] + M_t3
             a_t3 = T.nnet.softmax(a_t3)
-            r_t3 = He_3*(a_t3).T
+            r_t3 = (a_t3).T*He_3
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + UA[0].dot(r_t1) + b[0])
