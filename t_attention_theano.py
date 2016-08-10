@@ -133,9 +133,9 @@ class GRUTheano:
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
             #Add s_xt to s_t_pre
-            s_t1_prev_d = s_t1_prev_d * s_t1_matrix
-            s_t2_prev_d = s_t2_prev_d * s_t2_matrix
-            s_t3_prev_d = s_t3_prev_d * s_t3_matrix
+            s_t1_prev_d = s_t1_prev_d*(s_t1_matrix)
+            s_t2_prev_d = s_t2_prev_d*(s_t2_matrix)
+            s_t3_prev_d = s_t3_prev_d*(s_t3_matrix)
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + b[0])
@@ -177,9 +177,9 @@ class GRUTheano:
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
             #Add s_xt to s_t_pre
-            s_t1_prev_d_test = s_t1_prev_d_test * s_t1_matrix
-            s_t2_prev_d_test = s_t2_prev_d_test * s_t2_matrix
-            s_t3_prev_d_test = s_t3_prev_d_test * s_t3_matrix
+            s_t1_prev_d_test = s_t1_prev_d_test*(s_t1_matrix)
+            s_t2_prev_d_test = s_t2_prev_d_test*(s_t2_matrix)
+            s_t3_prev_d_test = s_t3_prev_d_test*(s_t3_matrix)
 
             # Decode   #LSTM Layer 1
             i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + b[0])
@@ -226,35 +226,35 @@ class GRUTheano:
             forward_prop_step_encode,
             sequences=x,
             truncate_gradient=self.bptt_truncate,
-            outputs_info=[dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim))])
+            outputs_info=[dict(initial=s_t1_b[-1]),
+                          dict(initial=s_t2_b[-1]),
+                          dict(initial=s_t3_b[-1]),
+                          dict(initial=c_t1_b[-1]),
+                          dict(initial=c_t2_b[-1]),
+                          dict(initial=c_t3_b[-1])])
         [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
             forward_prop_step_decode,
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0), s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
-                          dict(initial=s_t1[-1]+s_t1_b[-1]),
-                          dict(initial=s_t2[-1]+s_t2_b[-1]),
-                          dict(initial=s_t3[-1]+s_t3_b[-1]),
-                          dict(initial=c_t1[-1]+c_t1_b[-1]),
-                          dict(initial=c_t2[-1]+c_t2_b[-1]),
-                          dict(initial=c_t3[-1]+c_t3_b[-1])])
+                          dict(initial=s_t1[-1]),
+                          dict(initial=s_t2[-1]),
+                          dict(initial=s_t3[-1]),
+                          dict(initial=c_t1[-1]),
+                          dict(initial=c_t2[-1]),
+                          dict(initial=c_t3[-1])])
 
         [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test], updates = theano.scan(
             forward_prop_step_decode_test,
             sequences=[x, s_t1, s_t2, s_t3],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(3)),
-                          dict(initial=s_t1[-1]+s_t1_b[-1]),
-                          dict(initial=s_t2[-1]+s_t2_b[-1]),
-                          dict(initial=s_t3[-1]+s_t3_b[-1]),
-                          dict(initial=c_t1[-1]+c_t1_b[-1]),
-                          dict(initial=c_t2[-1]+c_t2_b[-1]),
-                          dict(initial=c_t3[-1]+c_t3_b[-1])])
+                          dict(initial=s_t1[-1]),
+                          dict(initial=s_t2[-1]),
+                          dict(initial=s_t3[-1]),
+                          dict(initial=c_t1[-1]),
+                          dict(initial=c_t2[-1]),
+                          dict(initial=c_t3[-1])])
 
         prediction = T.argmax(o_test, axis=1)
         o_error = T.sum(T.nnet.categorical_crossentropy(o, y))
