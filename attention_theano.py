@@ -321,7 +321,7 @@ class GRUTheano:
         dE = T.grad(cost, E)
         dU = T.grad(cost, U)
         dW = T.grad(cost, W)
-        dWA = T.grad(cost, WA)
+        # dWA = T.grad(cost, WA)
         dUA = T.grad(cost, UA)
         db = T.grad(cost, b)
         dV = T.grad(cost, V)
@@ -331,7 +331,8 @@ class GRUTheano:
         self.predict = theano.function([x], o_test)
         self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], cost)
-        self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dUA, db, dV, dc])
+        # self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dUA, db, dV, dc])
+        self.bptt = theano.function([x, y], [dE, dU, dW, dUA, db, dV, dc])
 
         # SGD parameters
         learning_rate = T.scalar('learning_rate')
@@ -342,7 +343,7 @@ class GRUTheano:
         mU = decay * self.mU + (1 - decay) * dU ** 2
         mW = decay * self.mW + (1 - decay) * dW ** 2
         mUA = decay * self.mUA + (1 - decay) * dUA ** 2
-        mWA = decay * self.mWA + (1 - decay) * dWA ** 2
+        # mWA = decay * self.mWA + (1 - decay) * dWA ** 2
         mV = decay * self.mV + (1 - decay) * dV ** 2
         mb = decay * self.mb + (1 - decay) * db ** 2
         mc = decay * self.mc + (1 - decay) * dc ** 2
@@ -354,13 +355,15 @@ class GRUTheano:
                      (U, U - learning_rate * dU / T.sqrt(mU + 1e-6)),
                      (W, W - learning_rate * dW / T.sqrt(mW + 1e-6)),
                      (UA, UA - learning_rate * dUA / T.sqrt(mUA + 1e-6)),
-                     (WA, WA - learning_rate * dWA / T.sqrt(mWA + 1e-6)),
+                     # (WA, WA - learning_rate * dWA / T.sqrt(mWA + 1e-6)),
                      (V, V - learning_rate * dV / T.sqrt(mV + 1e-6)),
                      (b, b - learning_rate * db / T.sqrt(mb + 1e-6)),
                      (c, c - learning_rate * dc / T.sqrt(mc + 1e-6)),
                      (self.mE, mE),
                      (self.mU, mU),
                      (self.mW, mW),
+                     (self.mUA, mUA),
+                     # (self.mWA, mWA),
                      (self.mV, mV),
                      (self.mb, mb),
                      (self.mc, mc)
