@@ -330,7 +330,6 @@ class GRUTheano:
         self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], cost)
         self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dUA, db, dV, dc])
-        theano.printing.debugprint(predict)
 
         # SGD parameters
         learning_rate = T.scalar('learning_rate')
