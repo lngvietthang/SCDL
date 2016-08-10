@@ -139,19 +139,19 @@ class GRUTheano:
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
             a_t1 = s_t1_prev_d.dot(WA[1]) + M_t1  # (len,1)
-            a_t1 = T.nnet.softmax(a_t1.T)
+            a_t1 = T.nnet.softmax(a_t1.T)[0]
             r_t1 = (a_t1).dot(He_1)
 
             # r_t1 = T.sum(He_1, axis=0)
 
             a_t2 = s_t2_prev_d.dot(WA[1]) + M_t2  #
-            a_t2 = T.nnet.softmax(a_t2.T)
+            a_t2 = T.nnet.softmax(a_t2.T)[0]
             r_t2 = (a_t2).dot(He_2)
             #
             # r_t2 = T.sum(He_2, axis=0)
             #
             a_t3 = s_t3_prev_d.dot(WA[1]) + M_t3  #
-            a_t3 = T.nnet.softmax(a_t3.T)
+            a_t3 = T.nnet.softmax(a_t3.T)[0]
             r_t3 = (a_t3).dot(He_3)
             #
             # r_t3 = T.sum(He_3, axis=0)
@@ -202,19 +202,19 @@ class GRUTheano:
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
             a_t1 = s_t1_prev_d_test.dot(WA[1]) + M_t1  # (len,1)
-            a_t1 = T.nnet.softmax(a_t1.T)
+            a_t1 = T.nnet.softmax(a_t1.T)[0]
             r_t1 = (a_t1).dot(He_1)
 
             # r_t1 = T.sum(He_1, axis=0)
 
             a_t2 = s_t2_prev_d_test.dot(WA[1]) + M_t2  #
-            a_t2 = T.nnet.softmax(a_t2.T)
+            a_t2 = T.nnet.softmax(a_t2.T)[0]
             r_t2 = (a_t2).dot(He_2)
             #
             # r_t2 = T.sum(He_2, axis=0)
             #
             a_t3 = s_t3_prev_d_test.dot(WA[1]) + M_t3  #
-            a_t3 = T.nnet.softmax(a_t3.T)
+            a_t3 = T.nnet.softmax(a_t3.T)[0]
             r_t3 = (a_t3).dot(He_3)
             #
             # r_t3 = T.sum(He_3, axis=0)
