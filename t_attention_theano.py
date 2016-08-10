@@ -133,9 +133,9 @@ class GRUTheano:
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
             #Add s_xt to s_t_pre
-            # s_t1_prev_d = s_t1_prev_d*(s_t1_matrix)
-            # s_t2_prev_d = s_t2_prev_d*(s_t2_matrix)
-            # s_t3_prev_d = s_t3_prev_d*(s_t3_matrix)
+            s_t1_prev_d = s_t1_prev_d*(s_t1_matrix)
+            s_t2_prev_d = s_t2_prev_d*(s_t2_matrix)
+            s_t3_prev_d = s_t3_prev_d*(s_t3_matrix)
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + b[0])
@@ -167,7 +167,7 @@ class GRUTheano:
 
             return [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d]
 
-        def forward_prop_step_decode_test(x_t, o_t_pre_test, s_t1_matrix, s_t2_matrix, s_t3_matrix, s_t1_prev_d_test, s_t2_prev_d_test, s_t3_prev_d_test, c_t1_prev_d_test, c_t2_prev_d_test, c_t3_prev_d_test):
+        def forward_prop_step_decode_test(x_t, s_t1_matrix, s_t2_matrix, s_t3_matrix, o_t_pre_test,s_t1_prev_d_test, s_t2_prev_d_test, s_t3_prev_d_test, c_t1_prev_d_test, c_t2_prev_d_test, c_t3_prev_d_test):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
 
@@ -177,9 +177,9 @@ class GRUTheano:
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
             #Add s_xt to s_t_pre
-            # s_t1_prev_d_test = s_t1_prev_d_test*(s_t1_matrix)
-            # s_t2_prev_d_test = s_t2_prev_d_test*(s_t2_matrix)
-            # s_t3_prev_d_test = s_t3_prev_d_test*(s_t3_matrix)
+            s_t1_prev_d_test = s_t1_prev_d_test*(s_t1_matrix)
+            s_t2_prev_d_test = s_t2_prev_d_test*(s_t2_matrix)
+            s_t3_prev_d_test = s_t3_prev_d_test*(s_t3_matrix)
 
             # Decode   #LSTM Layer 1
             i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + b[0])
