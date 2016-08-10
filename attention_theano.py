@@ -138,17 +138,26 @@ class GRUTheano:
             y_e = Ey_decode[:,y_t]
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
-            a_t1 = s_t1_prev_d*WA[1] + M_t1 #(len,1)
-            a_t1 = T.nnet.softmax(a_t1)
-            r_t1 = (a_t1).T*He_1
+            a_t1 = s_t1_prev_d.dot(WA[1]) + M_t1 #(len,1)
+            a_t1 = T.nnet.softmax(a_t1)[0]
+            r_t1 = (a_t1).T.dot(He_1)
+            r_t1 = r_t1.T
 
-            a_t2 = s_t2_prev_d*WA[1] + M_t2
-            a_t2 = T.nnet.softmax(a_t2)
-            r_t2 = (a_t2).T*He_2
+            # r_t1 = T.sum(He_1, axis=0)
 
-            a_t3 = s_t3_prev_d*WA[1] + M_t3
-            a_t3 = T.nnet.softmax(a_t3)
-            r_t3 = (a_t3).T*He_3
+            a_t2 = s_t2_prev_d.dot(WA[1]) + M_t2 #
+            a_t2 = T.nnet.softmax(a_t2)[0]
+            r_t2 = (a_t2).T.dot(He_2)
+            r_t2 = r_t2.T
+
+            # r_t2 = T.sum(He_2, axis=0)
+
+            a_t3 = s_t3_prev_d.dot(WA[1]) + M_t3 #
+            a_t3 = T.nnet.softmax(a_t3)[0]
+            r_t3 = (a_t3).T.dot(He_3)
+            r_t3 = r_t3.T
+
+            # r_t3 = T.sum(He_3, axis=0)
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + UA[0].dot(r_t1) + b[0])
@@ -186,7 +195,7 @@ class GRUTheano:
 
             return [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d]
 
-        def forward_prop_step_decode_test(x_t, o_t_pre_test, s_t1_prev_d_test, s_t2_prev_d_test, s_t3_prev_d_test, c_t1_prev_d_test, c_t2_prev_d_test, c_t3_prev_d_test):
+        def forward_prop_step_decode_test(x_t, o_t_pre_test, s_t1_prev_d_test, s_t2_prev_d_test, s_t3_prev_d_test, c_t1_prev_d_test, c_t2_prev_d_test, c_t3_prev_d_test, M_t1, M_t2,M_t3,He_1,He_2,He_3):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
 
@@ -195,27 +204,46 @@ class GRUTheano:
             #y_e = Ey[:, y_t]
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
+            a_t1 = s_t1_prev_d_test.dot(WA[1]) + M_t1  # (len,1)
+            a_t1 = T.nnet.softmax(a_t1)[0]
+            r_t1 = (a_t1).T.dot(He_1)
+            r_t1 = r_t1.T
+
+            # r_t1 = T.sum(He_1, axis=0)
+
+            a_t2 = s_t2_prev_d_test.dot(WA[1]) + M_t2  #
+            a_t2 = T.nnet.softmax(a_t2)[0]
+            r_t2 = (a_t2).T.dot(He_2)
+            r_t2 = r_t2.T
+
+            # r_t2 = T.sum(He_2, axis=0)
+
+            a_t3 = s_t3_prev_d_test.dot(WA[1]) + M_t3  #
+            a_t3 = T.nnet.softmax(a_t3)[0]
+            r_t3 = (a_t3).T.dot(He_3)
+            r_t3 = r_t3.T
+
             # Decode   #LSTM Layer 1
-            i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + b[0])
-            f_t1_d_test = T.nnet.hard_sigmoid(U[1].dot(xy_e_d_test) + W[1].dot(s_t1_prev_d_test) + b[1])
-            o_t1_d_test = T.nnet.hard_sigmoid(U[2].dot(xy_e_d_test) + W[2].dot(s_t1_prev_d_test) + b[2])
-            g_t1_d_test = T.tanh(U[3].dot(xy_e_d_test) + W[3].dot(s_t1_prev_d_test) + b[3])
+            i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + UA[0].dot(r_t1) + b[0])
+            f_t1_d_test = T.nnet.hard_sigmoid(U[1].dot(xy_e_d_test) + W[1].dot(s_t1_prev_d_test) + UA[1].dot(r_t1)+ b[1])
+            o_t1_d_test = T.nnet.hard_sigmoid(U[2].dot(xy_e_d_test) + W[2].dot(s_t1_prev_d_test) + UA[2].dot(r_t1)+ b[2])
+            g_t1_d_test = T.tanh(U[3].dot(xy_e_d_test) + W[3].dot(s_t1_prev_d_test) + UA[3].dot(r_t1) + b[3])
             c_t1_d_test = c_t1_prev_d_test * f_t1_d_test + g_t1_d_test * i_t1_d_test
             s_t1_d_test = T.tanh(c_t1_d_test) * o_t1_d_test
 
             # LSTM Layer 2
-            i_t2_d_test = T.nnet.hard_sigmoid(U[4].dot(s_t1_d_test) + W[4].dot(s_t2_prev_d_test) + b[4])
-            f_t2_d_test = T.nnet.hard_sigmoid(U[5].dot(s_t1_d_test) + W[5].dot(s_t2_prev_d_test) + b[5])
-            o_t2_d_test = T.nnet.hard_sigmoid(U[6].dot(s_t1_d_test) + W[6].dot(s_t2_prev_d_test) + b[6])
-            g_t2_d_test = T.tanh(U[7].dot(s_t1_d_test) + W[7].dot(s_t2_prev_d_test) + b[7])
+            i_t2_d_test = T.nnet.hard_sigmoid(U[4].dot(s_t1_d_test) + W[4].dot(s_t2_prev_d_test) + UA[4].dot(r_t2)+ b[4])
+            f_t2_d_test = T.nnet.hard_sigmoid(U[5].dot(s_t1_d_test) + W[5].dot(s_t2_prev_d_test) + UA[5].dot(r_t2)+ b[5])
+            o_t2_d_test = T.nnet.hard_sigmoid(U[6].dot(s_t1_d_test) + W[6].dot(s_t2_prev_d_test) + UA[6].dot(r_t2)+ b[6])
+            g_t2_d_test = T.tanh(U[7].dot(s_t1_d_test) + W[7].dot(s_t2_prev_d_test) + UA[7].dot(r_t2)+ b[7])
             c_t2_d_test = c_t2_prev_d_test * f_t2_d_test + g_t2_d_test * i_t2_d_test
             s_t2_d_test = T.tanh(c_t2_d_test) * o_t2_d_test
 
             # LSTM Layer 3
-            i_t3_d_test = T.nnet.hard_sigmoid(U[8].dot(s_t2_d_test) + W[8].dot(s_t3_prev_d_test) + b[8])
-            f_t3_d_test = T.nnet.hard_sigmoid(U[9].dot(s_t2_d_test) + W[9].dot(s_t3_prev_d_test) + b[9])
-            o_t3_d_test = T.nnet.hard_sigmoid(U[10].dot(s_t2_d_test) + W[10].dot(s_t3_prev_d_test) + b[10])
-            g_t3_d_test = T.tanh(U[11].dot(s_t2_d_test) + W[11].dot(s_t3_prev_d_test) + b[11])
+            i_t3_d_test = T.nnet.hard_sigmoid(U[8].dot(s_t2_d_test) + W[8].dot(s_t3_prev_d_test) + UA[8].dot(r_t3)+ b[8])
+            f_t3_d_test = T.nnet.hard_sigmoid(U[9].dot(s_t2_d_test) + W[9].dot(s_t3_prev_d_test) + UA[9].dot(r_t3) +b[9])
+            o_t3_d_test = T.nnet.hard_sigmoid(U[10].dot(s_t2_d_test) + W[10].dot(s_t3_prev_d_test) +UA[9].dot(r_t3)+ b[10])
+            g_t3_d_test = T.tanh(U[11].dot(s_t2_d_test) + W[11].dot(s_t3_prev_d_test) + UA[11].dot(r_t3)+b[11])
             c_t3_d_test = c_t3_prev_d_test * f_t3_d_test + g_t3_d_test * i_t3_d_test
             s_t3_d_test = T.tanh(c_t3_d_test) * o_t3_d_test
 
@@ -234,7 +262,9 @@ class GRUTheano:
                           dict(initial=T.zeros(self.hidden_dim)),
                           dict(initial=T.zeros(self.hidden_dim)),
                           dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim))])
+                          dict(initial=T.zeros(self.hidden_dim))]
+
+        )
 
         [s_t1, s_t2, s_t3, c_t1, c_t2, c_t3], updates = theano.scan(
             forward_prop_step_encode,
@@ -245,22 +275,24 @@ class GRUTheano:
                           dict(initial=s_t3_b[-1]),
                           dict(initial=c_t1_b[-1]),
                           dict(initial=c_t2_b[-1]),
-                          dict(initial=c_t3_b[-1])])
-        M_t1 = s_t1*WA[0]
-        M_t2 = s_t2*WA[0]
-        M_t3 = s_t3*WA[0]
+                          dict(initial=c_t3_b[-1])
+                          ]
+        )
+        M_t1 = s_t1.dot(WA[0])
+        M_t2 = s_t2.dot(WA[0])
+        M_t3 = s_t3.dot(WA[0])
         [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
             forward_prop_step_decode,
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0)],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
-                          dict(initial=s_t1),
-                          dict(initial=s_t2),
-                          dict(initial=s_t3),
-                          dict(initial=c_t1),
-                          dict(initial=c_t2),
-                          dict(initial=c_t3)],
-            non_sequences = [M_t1, M_t2, M_t3, s_t1, s_t2, s_t3]
+                          dict(initial=s_t1[-1]),
+                          dict(initial=s_t2[-1]),
+                          dict(initial=s_t3[-1]),
+                          dict(initial=c_t1[-1]),
+                          dict(initial=c_t2[-1]),
+                          dict(initial=c_t3[-1])],
+            non_sequences = [M_t1, M_t2, M_t3,s_t1, s_t2, s_t3] #
         )
 
         [o_test, s_t1_d_test, s_t2_d_test, s_t3_d_test, c_t1_d_test, c_t2_d_test, c_t3_d_test], updates = theano.scan(
@@ -273,7 +305,9 @@ class GRUTheano:
                           dict(initial=s_t3[-1]),
                           dict(initial=c_t1[-1]),
                           dict(initial=c_t2[-1]),
-                          dict(initial=c_t3[-1])])
+                          dict(initial=c_t3[-1])],
+            non_sequences=[M_t1, M_t2, M_t3,s_t1, s_t2, s_t3]
+        )
 
         prediction = T.argmax(o_test, axis=1)
         o_error = T.sum(T.nnet.categorical_crossentropy(o, y))
@@ -296,6 +330,7 @@ class GRUTheano:
         self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], cost)
         self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dUA, db, dV, dc])
+        theano.printing.debugprint(predict)
 
         # SGD parameters
         learning_rate = T.scalar('learning_rate')
