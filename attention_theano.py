@@ -138,26 +138,23 @@ class GRUTheano:
             y_e = Ey_decode[:,y_t]
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
-            # a_t1 = s_t1_prev_d.dot(WA[1]) + M_t1 #(len,1)
-            # a_t1 = T.nnet.softmax(a_t1)[0]
-            # r_t1 = (a_t1).T.dot(He_1)
-            #r_t1 = r_t1.T
+            a_t1 = s_t1_prev_d.dot(WA[1]) + M_t1  # (len,1)
+            a_t1 = T.nnet.softmax(a_t1.T)
+            r_t1 = (a_t1).dot(He_1)
 
-            r_t1 = T.sum(He_1, axis=0)
+            # r_t1 = T.sum(He_1, axis=0)
 
-            # a_t2 = s_t2_prev_d.dot(WA[1]) + M_t2 #
-            # a_t2 = T.nnet.softmax(a_t2)[0]
-            # r_t2 = (a_t2).T.dot(He_2)
-            # r_t2 = r_t2.T
-
-            r_t2 = T.sum(He_2, axis=0)
-
-            # a_t3 = s_t3_prev_d.dot(WA[1]) + M_t3 #
-            # a_t3 = T.nnet.softmax(a_t3)[0]
-            # r_t3 = (a_t3).T.dot(He_3)
-            # r_t3 = r_t3.T
-
-            r_t3 = T.sum(He_3, axis=0)
+            a_t2 = s_t2_prev_d.dot(WA[1]) + M_t2  #
+            a_t2 = T.nnet.softmax(a_t2.T)
+            r_t2 = (a_t2).dot(He_2)
+            #
+            # r_t2 = T.sum(He_2, axis=0)
+            #
+            a_t3 = s_t3_prev_d.dot(WA[1]) + M_t3  #
+            a_t3 = T.nnet.softmax(a_t3.T)
+            r_t3 = (a_t3).dot(He_3)
+            #
+            # r_t3 = T.sum(He_3, axis=0)
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U[0].dot(xy_e_d) + W[0].dot(s_t1_prev_d) + UA[0].dot(r_t1) + b[0])
@@ -204,26 +201,23 @@ class GRUTheano:
             #y_e = Ey[:, y_t]
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
-            # a_t1 = s_t1_prev_d_test.dot(WA[1]) + M_t1  # (len,1)
-            # a_t1 = T.nnet.softmax(a_t1)[0]
-            # r_t1 = (a_t1).T.dot(He_1)
-            # r_t1 = r_t1.T
+            a_t1 = s_t1_prev_d_test.dot(WA[1]) + M_t1  # (len,1)
+            a_t1 = T.nnet.softmax(a_t1.T)
+            r_t1 = (a_t1).dot(He_1)
 
-            r_t1 = T.sum(He_1, axis=0)
+            # r_t1 = T.sum(He_1, axis=0)
 
-            # a_t2 = s_t2_prev_d_test.dot(WA[1]) + M_t2  #
-            # a_t2 = T.nnet.softmax(a_t2)[0]
-            # r_t2 = (a_t2).T.dot(He_2)
-            # r_t2 = r_t2.T
-
-            r_t2 = T.sum(He_2, axis=0)
-
-            # a_t3 = s_t3_prev_d_test.dot(WA[1]) + M_t3  #
-            # a_t3 = T.nnet.softmax(a_t3)[0]
-            # r_t3 = (a_t3).T.dot(He_3)
-            # r_t3 = r_t3.T
-
-            r_t3 = T.sum(He_3, axis=0)
+            a_t2 = s_t2_prev_d_test.dot(WA[1]) + M_t2  #
+            a_t2 = T.nnet.softmax(a_t2.T)
+            r_t2 = (a_t2).dot(He_2)
+            #
+            # r_t2 = T.sum(He_2, axis=0)
+            #
+            a_t3 = s_t3_prev_d_test.dot(WA[1]) + M_t3  #
+            a_t3 = T.nnet.softmax(a_t3.T)
+            r_t3 = (a_t3).dot(He_3)
+            #
+            # r_t3 = T.sum(He_3, axis=0)
 
             # Decode   #LSTM Layer 1
             i_t1_d_test = T.nnet.hard_sigmoid(U[0].dot(xy_e_d_test) + W[0].dot(s_t1_prev_d_test) + UA[0].dot(r_t1) + b[0])
@@ -321,7 +315,7 @@ class GRUTheano:
         dE = T.grad(cost, E)
         dU = T.grad(cost, U)
         dW = T.grad(cost, W)
-        # dWA = T.grad(cost, WA)
+        dWA = T.grad(cost, WA)
         dUA = T.grad(cost, UA)
         db = T.grad(cost, b)
         dV = T.grad(cost, V)
@@ -331,8 +325,8 @@ class GRUTheano:
         self.predict = theano.function([x], o_test)
         self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], cost)
-        # self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dUA, db, dV, dc])
-        self.bptt = theano.function([x, y], [dE, dU, dW, dUA, db, dV, dc])
+        self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dUA, db, dV, dc])
+        # self.bptt = theano.function([x, y], [dE, dU, dW, dUA, db, dV, dc])
 
         # SGD parameters
         learning_rate = T.scalar('learning_rate')
@@ -343,7 +337,7 @@ class GRUTheano:
         mU = decay * self.mU + (1 - decay) * dU ** 2
         mW = decay * self.mW + (1 - decay) * dW ** 2
         mUA = decay * self.mUA + (1 - decay) * dUA ** 2
-        # mWA = decay * self.mWA + (1 - decay) * dWA ** 2
+        mWA = decay * self.mWA + (1 - decay) * dWA ** 2
         mV = decay * self.mV + (1 - decay) * dV ** 2
         mb = decay * self.mb + (1 - decay) * db ** 2
         mc = decay * self.mc + (1 - decay) * dc ** 2
@@ -355,7 +349,7 @@ class GRUTheano:
                      (U, U - learning_rate * dU / T.sqrt(mU + 1e-6)),
                      (W, W - learning_rate * dW / T.sqrt(mW + 1e-6)),
                      (UA, UA - learning_rate * dUA / T.sqrt(mUA + 1e-6)),
-                     # (WA, WA - learning_rate * dWA / T.sqrt(mWA + 1e-6)),
+                     (WA, WA - learning_rate * dWA / T.sqrt(mWA + 1e-6)),
                      (V, V - learning_rate * dV / T.sqrt(mV + 1e-6)),
                      (b, b - learning_rate * db / T.sqrt(mb + 1e-6)),
                      (c, c - learning_rate * dc / T.sqrt(mc + 1e-6)),
@@ -363,7 +357,7 @@ class GRUTheano:
                      (self.mU, mU),
                      (self.mW, mW),
                      (self.mUA, mUA),
-                     # (self.mWA, mWA),
+                     (self.mWA, mWA),
                      (self.mV, mV),
                      (self.mb, mb),
                      (self.mc, mc)
