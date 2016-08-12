@@ -21,7 +21,7 @@ PRINT_EVERY = int(os.environ.get("PRINT_EVERY", "1000"))
 
 ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
 if not MODEL_OUTPUT_FILE:
-  MODEL_OUTPUT_FILE = "tAttention-GRU-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
+  MODEL_OUTPUT_FILE = "2ndtAttention-GRU-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
 
 # Load data
 #x_train, y_train, word_to_index, index_to_word = load_data(INPUT_DATA_FILE, VOCABULARY_SIZE)
@@ -33,7 +33,7 @@ model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
 #model = load_model_parameters_theano('GRU-2016-08-05-13-48-2000-50-100.dat.npz')
 
 #Print SGD step time
-print 'tAttention'
+print '2nd tAttention'
 t1 = time.time()
 model.sgd_step(X_train[10], y_train[10], LEARNING_RATE)
 c = model.ce_error(X_train[10], y_train[10])
@@ -59,7 +59,7 @@ for epoch in range(NEPOCH):
   train_with_sgd(model, X_train, y_train, learning_rate=LEARNING_RATE, nepoch=1, decay=0.9,
     callback_every=PRINT_EVERY, callback=sgd_callback)
 t4 = time.time()
-print "tAttention SGD Train time: %f" % ((t4 - t3))
+print "2nd tAttention SGD Train time: %f" % ((t4 - t3))
 sys.stdout.flush()
 #
 print 'Testing...'
@@ -68,5 +68,5 @@ np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
 
 print 'Compute f1:...'
 f1 = compute_f1(y_test, predict_test)
-write_output('./Output_tAttention_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
+write_output('./Output_2ndtAttention_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
 
