@@ -216,17 +216,29 @@ class GRUTheano:
             forward_prop_step_encode,
             sequences=x,
             truncate_gradient=self.bptt_truncate,
-            outputs_info=[dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim))])
+            outputs_info=[dict(initial=s_t1_b[-1]),
+                          dict(initial=s_t2_b[-1]),
+                          dict(initial=s_t3_b[-1]),
+                          dict(initial=c_t1_b[-1]),
+                          dict(initial=c_t2_b[-1]),
+                          dict(initial=c_t3_b[-1])])
+                        # dict(initial=T.zeros(self.hidden_dim)),
+                        #   dict(initial=T.zeros(self.hidden_dim)),
+                        #   dict(initial=T.zeros(self.hidden_dim)),
+                        #   dict(initial=T.zeros(self.hidden_dim)),
+                        #   dict(initial=T.zeros(self.hidden_dim)),
+                        #   dict(initial=T.zeros(self.hidden_dim))])
         [o, s_t1_d, s_t2_d, s_t3_d, c_t1_d, c_t2_d, c_t3_d], updates = theano.scan(
             forward_prop_step_decode,
             sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0)],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
+                          # dict(initial=s_t1[-1]+s_t1_b[-1]),
+                          # dict(initial=s_t2[-1]+s_t2_b[-1]),
+                          # dict(initial=s_t3[-1]+s_t3_b[-1]),
+                          # dict(initial=c_t1[-1]+c_t1_b[-1]),
+                          # dict(initial=c_t2[-1]+c_t2_b[-1]),
+                          # dict(initial=c_t3[-1]+c_t3_b[-1])])
                           dict(initial=s_t1[-1]+s_t1_b[-1]),
                           dict(initial=s_t2[-1]+s_t2_b[-1]),
                           dict(initial=s_t3[-1]+s_t3_b[-1]),
@@ -239,13 +251,18 @@ class GRUTheano:
             sequences=x,
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(3)),
+                          # dict(initial=s_t1[-1]+s_t1_b[-1]),
+                          # dict(initial=s_t2[-1]+s_t2_b[-1]),
+                          # dict(initial=s_t3[-1]+s_t3_b[-1]),
+                          # dict(initial=c_t1[-1]+c_t1_b[-1]),
+                          # dict(initial=c_t2[-1]+c_t2_b[-1]),
+                          # dict(initial=c_t3[-1]+c_t3_b[-1])])
                           dict(initial=s_t1[-1]+s_t1_b[-1]),
                           dict(initial=s_t2[-1]+s_t2_b[-1]),
                           dict(initial=s_t3[-1]+s_t3_b[-1]),
                           dict(initial=c_t1[-1]+c_t1_b[-1]),
                           dict(initial=c_t2[-1]+c_t2_b[-1]),
                           dict(initial=c_t3[-1]+c_t3_b[-1])])
-
         prediction = T.argmax(o_test, axis=1)
         o_error = T.sum(T.nnet.categorical_crossentropy(o, y))
 
