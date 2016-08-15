@@ -10,7 +10,7 @@ import operator
 import io
 import array
 from datetime import datetime
-from attention_theano import GRUTheano
+from attentionv2_theano import GRUTheano
 
 SENTENCE_START_TOKEN = "SENTENCE_START"
 SENTENCE_END_TOKEN = "SENTENCE_END"
@@ -88,13 +88,14 @@ def save_model_parameters_theano(model, outfile):
         UA=model.UA.get_value(),
         WA=model.WA.get_value(),
         V=model.V.get_value(),
+        va=model.va.get_value(),
         b=model.b.get_value(),
         c=model.c.get_value())
     print "Saved model parameters to %s." % outfile
 
 def load_model_parameters_theano(path, modelClass=GRUTheano):
     npzfile = np.load(path)
-    E, U, W,  UA, WA,V, b, c = npzfile["E"], npzfile["U"], npzfile["W"], npzfile["UA"], npzfile["WA"],npzfile["V"], npzfile["b"], npzfile["c"]
+    E, U, W,  UA, WA,V,va, b, c = npzfile["E"], npzfile["U"], npzfile["W"], npzfile["UA"], npzfile["WA"],npzfile["V"],npzfile["va"], npzfile["b"], npzfile["c"]
     hidden_dim, word_dim = E.shape[0]+3, E.shape[1]
     print "Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim)
     sys.stdout.flush()
@@ -105,6 +106,7 @@ def load_model_parameters_theano(path, modelClass=GRUTheano):
     model.UA.set_value(UA)
     model.WA.set_value(WA)
     model.V.set_value(V)
+    model.va.set_value(va)
     model.b.set_value(b)
     model.c.set_value(c)
     return model

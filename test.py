@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+from __future__ import division
 import sys
 import os
 import time
@@ -67,8 +67,50 @@ print 'Testing...'
 predict_test = testing(model, X_test)
 np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
 '''
-predict_test=np.load("GRU-2016-08-06-08-17-8000-50-100.dat.predict.npy")
+
+def compute_f1_except0(y_test, predict_test):
+    f1=[0,0,0,0,0,[]]
+    num_error=0
+    num_f1_0 = 0
+    for i in range(len(y_test)):
+        num_True = 0
+        num_predict = 0
+        num_test = 0
+        for y in range(1,len(y_test[i])):
+            if y_test[i][y] == predict_test[i][y] and y_test[i][y] == 1:
+                num_True+=1
+            if y_test[i][y] ==1:
+                num_test+=1
+            if predict_test[i][y] ==1:
+                num_predict+=1
+        f1[0]+=num_True
+        f1[1]+=num_predict
+        f1[2]+=num_test
+        if num_True ==0:
+            f1_sent = 0
+            num_f1_0+=1
+        else:
+            precision = num_True/num_predict
+            recall = num_True/num_test
+            f1_sent= 2*(precision*recall)/(precision+recall)
+        if math.isnan(f1_sent):
+            f1_sent=0
+            num_error+=1
+        f1[3]+=f1_sent
+
+        f1[4]+=len(y_test[i])
+        f1[5].append((i, f1_sent, predict_test[i], y_test[i]))
+    f1[3] = f1[3] / (len(y_test) - num_error-num_f1_0)
+    if (len(y_test)-num_error) ==0:
+        print ('----- All predicts are zero -----')
+    else:
+        print ('Total: %d - Error sentences: %d = %d'%(len(y_test), num_error, len(y_test)-num_error))
+        print ('No. sent F1 is 0: %d'%num_f1_0)
+        print (f1[3])
+        return f1
+
+predict_test=np.load("/home/nhitt/Dropbox/Compression_lstm/rnn-tutorial-gru-lstm/Output_2ndAttention_theano/AttentionV2-GRU-2016-08-13-10-12-8000-50-100.dat.predict.npy")
 print 'Compute f1:...'
-f1 = compute_f1(y_test, predict_test)
-write_output('./Output_seq2seq_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
+f1 = compute_f1_except0(y_test, predict_test)
+#write_output('./Output_seq2seq_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
 
