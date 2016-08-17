@@ -6,7 +6,7 @@ import time
 import numpy as np
 #from utils_bidirection import *
 from datetime import datetime
-from bidirection import GRUTheano
+from bidirection import *
 from preprocess2 import load_data_from_json2, compute_f1, write_output, testing
 import math
 
