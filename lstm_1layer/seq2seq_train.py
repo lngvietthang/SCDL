@@ -4,9 +4,9 @@ import sys
 import os
 import time
 import numpy as np
-from utils import *
+#from utils import *
 from datetime import datetime
-from gru_theano import GRUTheano
+from seq2seq import *
 from preprocess2 import load_data_from_json2, compute_f1, write_output, testing
 import math
 

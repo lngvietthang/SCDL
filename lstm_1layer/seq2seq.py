@@ -5,6 +5,17 @@ from theano.gradient import grad_clip
 import time
 import operator
 
+import csv
+import itertools
+import numpy as np
+import nltk
+import time
+import sys
+import operator
+import io
+import array
+from datetime import datetime
+
 class GRUTheano:
 
     def __init__(self, word_dim, hidden_dim=100, bptt_truncate=-1):
@@ -200,3 +211,43 @@ class GRUTheano:
         num_words = np.sum([len(y) for y in Y])
         return self.calculate_total_loss(X,Y)/float(num_words)
 
+#utils
+def train_with_sgd(model, X_train, y_train, learning_rate=0.001, nepoch=20, decay=0.9,
+    callback_every=10000, callback=None):
+    num_examples_seen = 0
+    for epoch in range(nepoch):
+        # For each training example...
+        for i in np.random.permutation(len(y_train)):
+            # One SGD step
+            model.sgd_step(X_train[i], y_train[i], learning_rate, decay)
+            num_examples_seen += 1
+            # Optionally do callback
+            if (callback and callback_every and num_examples_seen % callback_every == 0):
+                callback(model, num_examples_seen)
+                sys.stdout.write('.')
+    return model
+
+def save_model_parameters_theano(model, outfile):
+    np.savez(outfile,
+        E=model.E.get_value(),
+        U=model.U.get_value(),
+        W=model.W.get_value(),
+        V=model.V.get_value(),
+        b=model.b.get_value(),
+        c=model.c.get_value())
+    print "Saved model parameters to %s." % outfile
+
+def load_model_parameters_theano(path, modelClass=GRUTheano):
+    npzfile = np.load(path)
+    E, Ey_encode, Ey_decode, U, W, V, b, c = npzfile["E"], npzfile["Ey_encode"],npzfile["Ey_decode"],npzfile["U"], npzfile["W"], npzfile["V"], npzfile["b"], npzfile["c"]
+    hidden_dim, word_dim = E.shape[0]+3, E.shape[1]
+    print "Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim)
+    sys.stdout.flush()
+    model = modelClass(word_dim, hidden_dim=hidden_dim)
+    model.E.set_value(E)
+    model.U.set_value(U)
+    model.W.set_value(W)
+    model.V.set_value(V)
+    model.b.set_value(b)
+    model.c.set_value(c)
+    return model
