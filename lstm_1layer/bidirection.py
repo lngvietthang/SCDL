@@ -4,6 +4,16 @@ import theano.tensor as T
 from theano.gradient import grad_clip
 import time
 import operator
+import csv
+import itertools
+import numpy as np
+import nltk
+import time
+import sys
+import operator
+import io
+import array
+from datetime import datetime
 
 class GRUTheano:
 
