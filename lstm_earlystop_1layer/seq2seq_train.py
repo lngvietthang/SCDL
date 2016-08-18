@@ -4,7 +4,6 @@ import sys
 import os
 import time
 import numpy as np
-#from utils import *
 from datetime import datetime
 from seq2seq import *
 from preprocess2 import load_data_from_json2, compute_f1, write_output, testing, load_data_validation, early_stop_flag
@@ -16,7 +15,7 @@ EMBEDDING_DIM = int(os.environ.get("EMBEDDING_DIM", "50"))
 HIDDEN_DIM = int(os.environ.get("HIDDEN_DIM", "100"))
 NEPOCH = int(os.environ.get("NEPOCH", "50"))
 MODEL_OUTPUT_FILE = os.environ.get("MODEL_OUTPUT_FILE")
-INPUT_DATA_FILE = os.environ.get("INPUT_DATA_FILE", '../../Data/Filippova/compression-data-100k.json')
+INPUT_DATA_FILE = os.environ.get("INPUT_DATA_FILE", '../../Data/Filippova/compression-data.json')
 PRINT_EVERY = int(os.environ.get("PRINT_EVERY", "1000"))
 
 ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
