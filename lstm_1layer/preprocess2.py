@@ -127,6 +127,10 @@ def load_data_from_json2(path_to_json, test_split, vocabulary_size):
         compression_sentence_array.append(compression_sentence)
     return ((X[int(len(X)*test_split):],y[int(len(y)*test_split):], len_sent_array[int(len(len_sent_array)*test_split):], sample_weight[int(len(sample_weight)*test_split):]), (X[:int(len(X)*test_split)], y[:int(len(y)*test_split)], len_sent_array[:int(len(len_sent_array)*test_split)], sample_weight[:int(len(sample_weight)*test_split)]), (original_sentence_array, compression_sentence_array))
 
+def load_data_validation(X, y, test_split):
+    #return (X[int(len(X)*test_split):],y[int(len(y)*test_split):], len_sent_array[int(len(len_sent_array)*test_split):], sample_weight[int(len(sample_weight)*test_split):]), (X[:int(len(X)*test_split)], y[:int(len(y)*test_split)], len_sent_array[:int(len(len_sent_array)*test_split)], sample_weight[:int(len(sample_weight)*test_split)])
+    return (X[int(len(X)*test_split):],y[int(len(y)*test_split):]), (X[:int(len(X)*test_split)], y[:int(len(y)*test_split)])
+
 def testing(model, X_test):
     predict_y_test=[]
     for i in range(len(X_test)):

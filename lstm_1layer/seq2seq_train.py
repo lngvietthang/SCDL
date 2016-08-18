@@ -7,7 +7,7 @@ import numpy as np
 #from utils import *
 from datetime import datetime
 from seq2seq import *
-from preprocess2 import load_data_from_json2, compute_f1, write_output, testing
+from preprocess2 import load_data_from_json2, compute_f1, write_output, testing, load_data_validation
 import math
 
 LEARNING_RATE = float(os.environ.get("LEARNING_RATE", "0.001"))
@@ -26,6 +26,8 @@ if not MODEL_OUTPUT_FILE:
 # Load data
 #x_train, y_train, word_to_index, index_to_word = load_data(INPUT_DATA_FILE, VOCABULARY_SIZE)
 (X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (original_sentence_text, compression_sentence_text) = load_data_from_json2(INPUT_DATA_FILE,  0.2, VOCABULARY_SIZE)
+(X_test, y_test) , (X_val, y_val) = load_data_validation(X_test, y_test, 0.5)
+
 
 # Build model
 print '\nBuild model'
@@ -53,11 +55,28 @@ def sgd_callback(model, num_examples_seen):
   print("\n")
   sys.stdout.flush()
 
+def early_stop_flag(m, X_v, y_v, f1_p):
+  predict_v = testing(m, X_v)
+  f1 = compute_f1(y_v, predict_v)[3]
+  if f1>f1_p:
+    return (True,f1)
+  else:
+    return (False,f1)
+
 t3 = time.time()
+f1_prev=0
+no_epoch_es=0
 for epoch in range(NEPOCH):
   print('Epoch %d: ' % epoch)
   train_with_sgd(model, X_train, y_train, learning_rate=LEARNING_RATE, nepoch=1, decay=0.9,
     callback_every=PRINT_EVERY, callback=sgd_callback)
+  es_flag, f1_prev = early_stop_flag(model, X_val, y_val, f1_prev)
+  if es_flag == False:
+    no_epoch_es+=1
+    if no_epoch_es>4:
+      break
+
+
 t4 = time.time()
 print "SGD Train time: %f" % ((t4 - t3))
 sys.stdout.flush()
