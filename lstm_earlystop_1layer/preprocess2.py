@@ -200,7 +200,7 @@ def early_stop_flag(m, X_v, y_v, f1_p):
   if f1>f1_p:
     return (True,f1)
   else:
-    return (False,f1)
+    return (False,f1_p)
 
 if __name__ == '__main__':
     (X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (
