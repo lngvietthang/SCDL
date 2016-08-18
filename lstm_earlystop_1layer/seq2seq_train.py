@@ -20,7 +20,7 @@ PRINT_EVERY = int(os.environ.get("PRINT_EVERY", "1000"))
 
 ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
 if not MODEL_OUTPUT_FILE:
-  MODEL_OUTPUT_FILE = "LSTM-1layer-earlystop-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
+  MODEL_OUTPUT_FILE = "seq2seq-1layer-earlystop-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
 
 # Load data
 #x_train, y_train, word_to_index, index_to_word = load_data(INPUT_DATA_FILE, VOCABULARY_SIZE)
