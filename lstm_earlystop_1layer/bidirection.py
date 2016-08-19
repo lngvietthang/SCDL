@@ -173,7 +173,7 @@ class GRUTheano:
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
                           dict(initial=theano.tensor.concatenate([s_t1[-1], s_t1_b[-1]], axis=0)),
-                          dict(initial=theano.tensor.concatenate(c_t1[-1],c_t1_b[-1], axis=0))
+                          dict(initial=theano.tensor.concatenate([c_t1[-1],c_t1_b[-1]], axis=0))
                           ])
 
         [o_test, s_t1_d_test, c_t1_d_test], updates = theano.scan(
@@ -182,7 +182,7 @@ class GRUTheano:
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(3)),
                           dict(initial=theano.tensor.concatenate([s_t1[-1], s_t1_b[-1]], axis=0)),
-                          dict(initial=theano.tensor.concatenate(c_t1[-1], c_t1_b[-1], axis=0))
+                          dict(initial=theano.tensor.concatenate([c_t1[-1], c_t1_b[-1]], axis=0))
                           ])
         prediction = T.argmax(o_test, axis=1)
         o_error = T.sum(T.nnet.categorical_crossentropy(o, y))
