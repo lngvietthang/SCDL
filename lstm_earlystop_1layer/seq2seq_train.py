@@ -22,6 +22,8 @@ ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
 if not MODEL_OUTPUT_FILE:
   MODEL_OUTPUT_FILE = "seq2seq-1layer-earlystop-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
 
+
+
 # Load data
 #x_train, y_train, word_to_index, index_to_word = load_data(INPUT_DATA_FILE, VOCABULARY_SIZE)
 (X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (original_sentence_text, compression_sentence_text) = load_data_from_json2(INPUT_DATA_FILE,  0.2, VOCABULARY_SIZE)
@@ -31,6 +33,7 @@ if not MODEL_OUTPUT_FILE:
 # Build model
 print '\nBuild model'
 model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
+model_best = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
 #model = load_model_parameters_theano('GRU-2016-08-05-13-48-2000-50-100.dat.npz')
 
 #Print SGD step time
@@ -50,7 +53,7 @@ def sgd_callback(model, num_examples_seen):
   print("\n%s (%d)" % (dt, num_examples_seen))
   print("--------------------------------------------------")
   print("Loss: %f" % loss)
-  save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
+  #save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
   print("\n")
   sys.stdout.flush()
 
@@ -67,15 +70,16 @@ for epoch in range(NEPOCH):
     if no_epoch_es > 4:
       break
   else:
+    model_best = model
+    save_model_parameters_theano(model_best, MODEL_OUTPUT_FILE)
     no_epoch_es = 0
-
 
 t4 = time.time()
 print "SGD Train time: %f" % ((t4 - t3))
 sys.stdout.flush()
 #
 print 'Testing...'
-predict_test = testing(model, X_test)
+predict_test = testing(model_best, X_test)
 np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
 
 print 'Compute f1:...'
