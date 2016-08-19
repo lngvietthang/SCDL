@@ -26,13 +26,13 @@ class GRUTheano:
         E = np.random.uniform(-np.sqrt(1./word_dim), np.sqrt(1./word_dim), (hidden_dim-3, word_dim))
         Ey_encode = np.zeros(3)
         Ey_decode = np.identity(3)
-        U = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (8, hidden_dim*2, hidden_dim))
-        W = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (8, hidden_dim*2, hidden_dim*2))
-        b = np.zeros((8, hidden_dim*2))
+        U = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (8, hidden_dim, hidden_dim))
+        W = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (8, hidden_dim, hidden_dim))
+        b = np.zeros((8, hidden_dim))
 
-        U_decode = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (4, hidden_dim, hidden_dim))
-        W_decode = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (4, hidden_dim, hidden_dim))
-        b_decode = np.zeros((4, hidden_dim))
+        U_decode = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (4, hidden_dim*2, hidden_dim))
+        W_decode = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (4, hidden_dim*2, hidden_dim*2))
+        b_decode = np.zeros((4, hidden_dim*2))
         V = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (3, hidden_dim * 2))
         c = np.zeros(3)
         # Theano: Created shared variables
@@ -285,9 +285,7 @@ def save_model_parameters_theano(model, outfile):
 
 def load_model_parameters_theano(path, modelClass=GRUTheano):
     npzfile = np.load(path)
-    E, Ey_encode, Ey_decode, U, W, V, b, c = npzfile["E"], npzfile["Ey_encode"], npzfile["Ey_decode"], npzfile["U"], \
-                                             npzfile["W"], npzfile["V"], npzfile["b"], npzfile["c"], npzfile[
-                                                 "U_decode"], npzfile["W_decode"], npzfile["b_decode"]
+    E, Ey_encode, Ey_decode, U, W, V, b, c, U_decode, W_decode, b_decode = npzfile["E"], npzfile["Ey_encode"], npzfile["Ey_decode"], npzfile["U"], npzfile["W"], npzfile["V"], npzfile["b"], npzfile["c"], npzfile["U_decode"], npzfile["W_decode"], npzfile["b_decode"]
     hidden_dim, word_dim = E.shape[0] + 3, E.shape[1]
     print "Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim)
     sys.stdout.flush()
