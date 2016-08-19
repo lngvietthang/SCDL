@@ -30,6 +30,7 @@ if not MODEL_OUTPUT_FILE:
 # Build model
 print '\nBuild model'
 model = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
+model_best = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
 #model = load_model_parameters_theano('GRU-2016-08-05-13-48-2000-50-100.dat.npz')
 
 #Print SGD step time
@@ -49,7 +50,7 @@ def sgd_callback(model, num_examples_seen):
   print("\n%s (%d)" % (dt, num_examples_seen))
   print("--------------------------------------------------")
   print("Loss: %f" % loss)
-  save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
+  #save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
   print("\n")
   sys.stdout.flush()
 
@@ -66,6 +67,8 @@ for epoch in range(NEPOCH):
     if no_epoch_es > 4:
       break
   else:
+    model_best = model
+    save_model_parameters_theano(model_best, MODEL_OUTPUT_FILE)
     no_epoch_es = 0
 
 t4 = time.time()
@@ -73,7 +76,7 @@ print "SGD Train time: %f" % ((t4 - t3))
 sys.stdout.flush()
 
 print 'Testing...'
-predict_test = testing(model, X_test)
+predict_test = testing(model_best, X_test)
 np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
 
 print 'Compute f1:...'
