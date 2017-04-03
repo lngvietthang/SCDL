@@ -4,8 +4,9 @@ import sys
 import os
 import time
 import numpy as np
+#from utils_t_attention import *
 from datetime import datetime
-from attention import *
+from tattention_initial_stb import *
 from preprocess2 import load_data_from_json2, compute_f1, write_output, testing, load_data_validation, early_stop_flag
 import math
 
@@ -20,14 +21,12 @@ PRINT_EVERY = int(os.environ.get("PRINT_EVERY", "1000"))
 
 ts = datetime.now().strftime("%Y-%m-%d-%H-%M")
 if not MODEL_OUTPUT_FILE:
-  MODEL_OUTPUT_FILE = "attention-1layer-earlystop-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
+  MODEL_OUTPUT_FILE = "tattention-initial-stb-1layer-earlystop-GRU-%s-%s-%s-%s.dat" % (ts, VOCABULARY_SIZE, EMBEDDING_DIM, HIDDEN_DIM)
 
 # Load data
 #x_train, y_train, word_to_index, index_to_word = load_data(INPUT_DATA_FILE, VOCABULARY_SIZE)
-(X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (original_sentence_text, compression_sentence_text) = load_data_from_json2(INPUT_DATA_FILE,  0.1, VOCABULARY_SIZE)
-#(X_test, y_test) , (X_val, y_val) = load_data_validation(X_test, y_test, 0.5)
-#(X_val, y_val), (X_test, y_test)  = load_data_validation(X_test, y_test, 0.5)
-
+(X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (original_sentence_text, compression_sentence_text) = load_data_from_json2(INPUT_DATA_FILE,  0.2, VOCABULARY_SIZE)
+(X_test, y_test) , (X_val, y_val) = load_data_validation(X_test, y_test, 0.5)
 
 # Build model
 print '\nBuild model'
@@ -36,7 +35,7 @@ model_best = GRUTheano(VOCABULARY_SIZE, hidden_dim=HIDDEN_DIM, bptt_truncate=-1)
 #model = load_model_parameters_theano('GRU-2016-08-05-13-48-2000-50-100.dat.npz')
 
 #Print SGD step time
-print 'Attention 1layer earlystop'
+print 'tAttention initial stb 1 layer earlystop'
 t1 = time.time()
 model.sgd_step(X_train[10], y_train[10], LEARNING_RATE)
 c = model.ce_error(X_train[10], y_train[10])
@@ -52,7 +51,7 @@ def sgd_callback(model, num_examples_seen):
   print("\n%s (%d)" % (dt, num_examples_seen))
   print("--------------------------------------------------")
   print("Loss: %f" % loss)
-  #save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
+  # save_model_parameters_theano(model, MODEL_OUTPUT_FILE)
   print("\n")
   sys.stdout.flush()
 
@@ -80,8 +79,7 @@ sys.stdout.flush()
 print 'Testing...'
 predict_test = testing(model_best, X_test)
 np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
-
 print 'Compute f1:...'
 f1 = compute_f1(y_test, predict_test)
-write_output('./Output_attention_1layer_earlystop_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
+write_output('./Output_tattention_initial_stb_1layer_earlystop_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
 

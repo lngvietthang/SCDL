@@ -26,6 +26,7 @@ class GRUTheano:
         E = np.random.uniform(-np.sqrt(1./word_dim), np.sqrt(1./word_dim), (hidden_dim-3, word_dim))
         Ey_encode = np.zeros(3)
         Ey_decode = np.identity(3)
+
         U = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (8, hidden_dim, hidden_dim))
         W = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (8, hidden_dim, hidden_dim))
         b = np.zeros((8, hidden_dim))
@@ -34,24 +35,19 @@ class GRUTheano:
                                      (4, hidden_dim, hidden_dim))
         W_decode = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim),
                                      (4, hidden_dim, hidden_dim))
-        va = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (hidden_dim * 2, 1))
-        WA = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (hidden_dim, hidden_dim * 2))
-        WAe = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (hidden_dim * 2, hidden_dim * 2))
-        UA = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (4, hidden_dim, hidden_dim * 2))
         b_decode = np.zeros((4, hidden_dim))
-        V = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (3, hidden_dim))
+        UA = np.random.uniform(-np.sqrt(1. / hidden_dim), np.sqrt(1. / hidden_dim), (4, hidden_dim, hidden_dim * 2))
+
+        V = np.random.uniform(-np.sqrt(1./hidden_dim), np.sqrt(1./hidden_dim), (3, hidden_dim))
         c = np.zeros(3)
         # Theano: Created shared variables
         self.E = theano.shared(name='E', value=E.astype(theano.config.floatX))
         self.Ey_encode = theano.shared(name='Ey_encode', value=Ey_encode.astype(theano.config.floatX))
         self.Ey_decode = theano.shared(name='Ey_decode', value=Ey_decode.astype(theano.config.floatX))
         self.U = theano.shared(name='U', value=U.astype(theano.config.floatX))
-        self.W = theano.shared(name='W', value=W.astype(theano.config.floatX))
-        self.WA = theano.shared(name='WA', value=WA.astype(theano.config.floatX))
-        self.WAe = theano.shared(name='WAe', value=WAe.astype(theano.config.floatX))
         self.UA = theano.shared(name='UA', value=UA.astype(theano.config.floatX))
+        self.W = theano.shared(name='W', value=W.astype(theano.config.floatX))
         self.V = theano.shared(name='V', value=V.astype(theano.config.floatX))
-        self.va = theano.shared(name='va', value=va.astype(theano.config.floatX))
         self.b = theano.shared(name='b', value=b.astype(theano.config.floatX))
         self.c = theano.shared(name='c', value=c.astype(theano.config.floatX))
         self.U_decode = theano.shared(name='U_decode', value=U_decode.astype(theano.config.floatX))
@@ -62,12 +58,9 @@ class GRUTheano:
         self.mEy_encode = theano.shared(name='mEy_encode', value=np.zeros(Ey_encode.shape).astype(theano.config.floatX))
         self.mEy_decode = theano.shared(name='mEy_decode', value=np.zeros(Ey_decode.shape).astype(theano.config.floatX))
         self.mU = theano.shared(name='mU', value=np.zeros(U.shape).astype(theano.config.floatX))
+        self.mUA = theano.shared(name='mUA', value=np.zeros(UA.shape).astype(theano.config.floatX))
         self.mV = theano.shared(name='mV', value=np.zeros(V.shape).astype(theano.config.floatX))
         self.mW = theano.shared(name='mW', value=np.zeros(W.shape).astype(theano.config.floatX))
-        self.mWA = theano.shared(name='mWA', value=np.zeros(WA.shape).astype(theano.config.floatX))
-        self.mWAe = theano.shared(name='mWAe', value=np.zeros(WAe.shape).astype(theano.config.floatX))
-        self.mUA = theano.shared(name='mUA', value=np.zeros(UA.shape).astype(theano.config.floatX))
-        self.mva = theano.shared(name='mva', value=np.zeros(va.shape).astype(theano.config.floatX))
         self.mb = theano.shared(name='mb', value=np.zeros(b.shape).astype(theano.config.floatX))
         self.mc = theano.shared(name='mc', value=np.zeros(c.shape).astype(theano.config.floatX))
         self.mU_decode = theano.shared(name='mU_decode', value=np.zeros(U_decode.shape).astype(theano.config.floatX))
@@ -78,7 +71,7 @@ class GRUTheano:
         self.__theano_build__()
 
     def __theano_build__(self):
-        E, Ey_encode, Ey_decode, V, U,UA, W,WA,WAe, va, b, c, U_decode, W_decode, b_decode = self.E, self.Ey_encode, self.Ey_decode, self.V, self.U,self.UA, self.W, self.WA, self.WAe, self.va,self.b, self.c, self.U_decode, self.W_decode, self.b_decode
+        E, Ey_encode, Ey_decode, V, U, UA, W, b, c, U_decode, W_decode, b_decode = self.E, self.Ey_encode, self.Ey_decode, self.V, self.U, self.UA, self.W, self.b, self.c, self.U_decode, self.W_decode, self.b_decode
 
         x = T.ivector('x')
         y = T.ivector('y')
@@ -121,7 +114,7 @@ class GRUTheano:
 
             return [s_t1, c_t1]
 
-        def forward_prop_step_decode(x_t, y_t, s_t1_prev_d, c_t1_prev_d, M_t1, He_1):
+        def forward_prop_step_decode(x_t, y_t, r_t1, s_t1_prev_d, c_t1_prev_d):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
 
@@ -130,9 +123,8 @@ class GRUTheano:
             y_e = Ey_decode[:,y_t]
             xy_e_d = theano.tensor.concatenate([x_e, y_e], axis=0)
 
-            a_t1 = T.tanh(s_t1_prev_d.dot(WA) + M_t1).dot(va)  # (len,1)
-            a_t1 = T.nnet.softmax(a_t1.T)[0]
-            r_t1 = a_t1.dot(He_1)
+            #Add s_xt to s_t_pre
+            #s_t1_prev_d = s_t1_prev_d*(s_t1_matrix)
 
             # Decode   #LSTM Layer 1
             i_t1_d = T.nnet.hard_sigmoid(U_decode[0].dot(xy_e_d) + W_decode[0].dot(s_t1_prev_d) + UA[0].dot(r_t1) + b_decode[0])
@@ -146,7 +138,7 @@ class GRUTheano:
 
             return [o, s_t1_d, c_t1_d]
 
-        def forward_prop_step_decode_test(x_t, o_t_pre_test, s_t1_prev_d_test, c_t1_prev_d_test, M_t1, He_1):
+        def forward_prop_step_decode_test(x_t, r_t1, o_t_pre_test,s_t1_prev_d_test, c_t1_prev_d_test):
             # This is how we calculated the hidden state in a simple RNN. No longer!
             # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
 
@@ -155,9 +147,8 @@ class GRUTheano:
             #y_e = Ey[:, y_t]
             xy_e_d_test = theano.tensor.concatenate([x_e, o_t_pre_test], axis=0)
 
-            a_t1 = T.tanh(s_t1_prev_d_test.dot(WA) + M_t1).dot(va)  # (len,1)
-            a_t1 = T.nnet.softmax(a_t1.T)[0]
-            r_t1 = a_t1.dot(He_1)
+            #Add s_xt to s_t_pre
+            #s_t1_prev_d_test = s_t1_prev_d_test*(s_t1_matrix)
 
             # Decode   #LSTM Layer 1
             i_t1_d_test = T.nnet.hard_sigmoid(U_decode[0].dot(xy_e_d_test) + W_decode[0].dot(s_t1_prev_d_test) + UA[0].dot(r_t1) + b_decode[0])
@@ -176,9 +167,7 @@ class GRUTheano:
             sequences=x[::-1], #reverse y
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim))]
-
-        )
+                          dict(initial=T.zeros(self.hidden_dim))])
         s_t1_b = s_t1_b[::-1]
         c_t1_b = c_t1_b[::-1]
 
@@ -187,32 +176,29 @@ class GRUTheano:
             sequences=x,
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(self.hidden_dim)),
-                          dict(initial=T.zeros(self.hidden_dim))]
-        )
+                          dict(initial=T.zeros(self.hidden_dim))])
 
         s_t1_encode = theano.tensor.concatenate([s_t1, s_t1_b], axis=1)
-        # c_t1_encode = theano.tensor.concatenate([c_t1, c_t1_b], axis=1)
-        M_t1 = (s_t1_encode).dot(WAe)
+        c_t1_encode = theano.tensor.concatenate([c_t1, c_t1_b], axis=1)
 
         [o, s_t1_d, c_t1_d], updates = theano.scan(
             forward_prop_step_decode,
-            sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0)],
+            sequences=[x,T.concatenate([[y[-1]],y[:-1]], axis=0), s_t1_encode],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[None,
                           dict(initial=s_t1_b[0]),
-                          dict(initial=c_t1_b[0])],
-            non_sequences = [M_t1, s_t1_encode] #
+                          dict(initial=c_t1_b[0])]
         )
 
         [o_test, s_t1_d_test, c_t1_d_test], updates = theano.scan(
             forward_prop_step_decode_test,
-            sequences=x,
+            sequences=[x, s_t1_encode],
             truncate_gradient=self.bptt_truncate,
             outputs_info=[dict(initial=T.zeros(3)),
                           dict(initial=s_t1_b[0]),
-                          dict(initial=c_t1_b[0])],
-            non_sequences=[M_t1, s_t1_encode]
-        )
+                          dict(initial=c_t1_b[0])]
+            )
+
 
         prediction = T.argmax(o_test, axis=1)
         o_error = T.sum(T.nnet.categorical_crossentropy(o, y))
@@ -223,13 +209,10 @@ class GRUTheano:
         # Gradients
         dE = T.grad(cost, E)
         dU = T.grad(cost, U)
-        dW = T.grad(cost, W)
-        dWA = T.grad(cost, WA)
-        dWAe = T.grad(cost, WAe)
         dUA = T.grad(cost, UA)
+        dW = T.grad(cost, W)
         db = T.grad(cost, b)
         dV = T.grad(cost, V)
-        dva = T.grad(cost, va)
         dc = T.grad(cost, c)
         dU_decode = T.grad(cost, U_decode)
         dW_decode = T.grad(cost, W_decode)
@@ -239,8 +222,7 @@ class GRUTheano:
         self.predict = theano.function([x], o_test)
         self.predict_class = theano.function([x], prediction)
         self.ce_error = theano.function([x, y], cost)
-        self.bptt = theano.function([x, y], [dE, dU, dW, dWA, dWAe, dUA, db, dV, dva, dc, dU_decode, dW_decode, db_decode])
-        # self.bptt = theano.function([x, y], [dE, dU, dW, dUA, db, dV, dc])
+        self.bptt = theano.function([x, y], [dE, dU, dUA, dW, db, dV, dc, dU_decode, dW_decode, db_decode])
 
         # SGD parameters
         learning_rate = T.scalar('learning_rate')
@@ -249,12 +231,9 @@ class GRUTheano:
         # rmsprop cache updates
         mE = decay * self.mE + (1 - decay) * dE ** 2
         mU = decay * self.mU + (1 - decay) * dU ** 2
-        mW = decay * self.mW + (1 - decay) * dW ** 2
         mUA = decay * self.mUA + (1 - decay) * dUA ** 2
-        mWA = decay * self.mWA + (1 - decay) * dWA ** 2
-        mWAe = decay * self.mWAe + (1 - decay) * dWAe ** 2
+        mW = decay * self.mW + (1 - decay) * dW ** 2
         mV = decay * self.mV + (1 - decay) * dV ** 2
-        mva = decay * self.mva + (1 - decay) * dva ** 2
         mb = decay * self.mb + (1 - decay) * db ** 2
         mc = decay * self.mc + (1 - decay) * dc ** 2
         mU_decode = decay * self.mU_decode + (1 - decay) * dU_decode ** 2
@@ -266,12 +245,9 @@ class GRUTheano:
             [],
             updates=[(E, E - learning_rate * dE / T.sqrt(mE + 1e-6)),
                      (U, U - learning_rate * dU / T.sqrt(mU + 1e-6)),
-                     (W, W - learning_rate * dW / T.sqrt(mW + 1e-6)),
                      (UA, UA - learning_rate * dUA / T.sqrt(mUA + 1e-6)),
-                     (WA, WA - learning_rate * dWA / T.sqrt(mWA + 1e-6)),
-                     (WAe, WAe - learning_rate * dWAe / T.sqrt(mWAe + 1e-6)),
+                     (W, W - learning_rate * dW / T.sqrt(mW + 1e-6)),
                      (V, V - learning_rate * dV / T.sqrt(mV + 1e-6)),
-                     (va, va - learning_rate * dva / T.sqrt(mva + 1e-6)),
                      (b, b - learning_rate * db / T.sqrt(mb + 1e-6)),
                      (c, c - learning_rate * dc / T.sqrt(mc + 1e-6)),
                      (U_decode, U_decode - learning_rate * dU_decode / T.sqrt(mU_decode + 1e-6)),
@@ -279,12 +255,9 @@ class GRUTheano:
                      (b_decode, b_decode - learning_rate * db_decode / T.sqrt(mb_decode + 1e-6)),
                      (self.mE, mE),
                      (self.mU, mU),
-                     (self.mW, mW),
                      (self.mUA, mUA),
-                     (self.mWA, mWA),
-                     (self.mWAe, mWAe),
+                     (self.mW, mW),
                      (self.mV, mV),
-                     (self.mva, mva),
                      (self.mb, mb),
                      (self.mc, mc),
                      (self.mU_decode, mU_decode),
@@ -318,36 +291,30 @@ def train_with_sgd(model, X_train, y_train, learning_rate=0.001, nepoch=20, deca
 
 def save_model_parameters_theano(model, outfile):
     np.savez(outfile,
-        E=model.E.get_value(),
-        U=model.U.get_value(),
-        W=model.W.get_value(),
-        UA=model.UA.get_value(),
-        WA=model.WA.get_value(),
-        WAe=model.WAe.get_value(),
-        V=model.V.get_value(),
-        va=model.va.get_value(),
-        b=model.b.get_value(),
-        c=model.c.get_value(),
-        U_decode=model.U_decode.get_value(),
-        W_decode=model.W_decode.get_value(),
-        b_decode=model.b_decode.get_value())
+             E=model.E.get_value(),
+             U=model.U.get_value(),
+             UA=model.UA.get_value(),
+             W=model.W.get_value(),
+             V=model.V.get_value(),
+             b=model.b.get_value(),
+             c=model.c.get_value(),
+             U_decode=model.U_decode.get_value(),
+             W_decode=model.W_decode.get_value(),
+             b_decode=model.b_decode.get_value())
     print "Saved model parameters to %s." % outfile
 
 def load_model_parameters_theano(path, modelClass=GRUTheano):
     npzfile = np.load(path)
-    E, U, W,  UA, WA,WAe, V,va, b, c, U_decode, W_decode, b_decode = npzfile["E"], npzfile["U"], npzfile["W"], npzfile["UA"], npzfile["WA"], npzfile["WAe"],npzfile["V"],npzfile["va"], npzfile["b"], npzfile["c"], npzfile["U_decode"], npzfile["W_decode"], npzfile["b_decode"]
-    hidden_dim, word_dim = E.shape[0]+3, E.shape[1]
+    E, Ey_encode, Ey_decode, U, UA, W, V, b, c, U_decode, W_decode, b_decode = npzfile["E"], npzfile["Ey_encode"], npzfile["Ey_decode"], npzfile["U"],  npzfile["UA"], npzfile["W"], npzfile["V"], npzfile["b"], npzfile["c"], npzfile["U_decode"], npzfile["W_decode"], npzfile["b_decode"]
+    hidden_dim, word_dim = E.shape[0] + 3, E.shape[1]
     print "Building model model from %s with hidden_dim=%d word_dim=%d" % (path, hidden_dim, word_dim)
     sys.stdout.flush()
     model = modelClass(word_dim, hidden_dim=hidden_dim)
     model.E.set_value(E)
     model.U.set_value(U)
-    model.W.set_value(W)
     model.UA.set_value(UA)
-    model.WA.set_value(WA)
-    model.WAe.set_value(WAe)
+    model.W.set_value(W)
     model.V.set_value(V)
-    model.va.set_value(va)
     model.b.set_value(b)
     model.c.set_value(c)
     model.U_decode.set_value(U_decode)
