@@ -179,21 +179,6 @@ def compute_f1(y_test, predict_test):
         print (f1[3])
         return f1
 
-def write_output(output_folder, output_index, text_ori, text_compress, threshold):
-    #train_index=8000
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    with io.open(os.path.join(output_folder, 'text_compression>'+str(threshold)), 'w' , encoding='utf8') as flarger, io.open(os.path.join(output_folder, 'text_compression<'+str(threshold)), 'w', encoding='utf8') as fsmaller, io.open(os.path.join(output_folder, 'text_compression_all'), 'w', encoding='utf8') as fall, io.open(os.path.join(output_folder, 'text_compression<<'+str(threshold)), 'w', encoding='utf8') as fsmallest:
-        for (i, f1_sent, predict_test, y_test) in output_index:
-            out='original: %s\nsystem: %s\ngold: %s\ngold :%s\n\n' % (text_ori[i], list(predict_test), list(y_test), text_compress[i])
-            fall.write(out)
-            if f1_sent>=threshold:
-                flarger.write(out)
-            else:
-                fsmaller.write(out)
-            if f1_sent<(threshold/2):
-                fsmallest.write(out)
-
 def early_stop_flag(m, X_v, y_v, f1_p):
   predict_v = testing(m, X_v)
   f1 = compute_f1(y_v, predict_v)[3]
@@ -201,13 +186,3 @@ def early_stop_flag(m, X_v, y_v, f1_p):
     return (True,f1)
   else:
     return (False,f1_p)
-
-if __name__ == '__main__':
-    (X_train, y_train, len_sent_train, sample_weight_train), (X_test, y_test, len_sent_test, sample_weight_test), (
-    original_sentence_text, compression_sentence_text) = load_data_from_json2('../Data/SentenceCompression/Filippova/compression-data-100k.json',  0.3, 8000)
-    # json_objects= read_json_file('../../Data/SentenceCompression/Filippova/compression-data.json')
-    # print statistic_len(json_objects)
-    print('y_train len: ', len(y_train) , len(y_test))
-    print('X_train:', X_train[0])
-    print('y_test: ', y_test[0])
-    print('X_test:', X_test[0])
