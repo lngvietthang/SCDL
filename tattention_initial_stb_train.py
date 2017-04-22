@@ -81,5 +81,5 @@ predict_test = testing(model_best, X_test)
 np.save("%s.predict" % (MODEL_OUTPUT_FILE), predict_test)
 print 'Compute f1:...'
 f1 = compute_f1(y_test, predict_test)
-write_output('./Output_tattention_initial_stb_1layer_earlystop_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
+#write_output('./Output_tattention_initial_stb_1layer_earlystop_theano', f1[5], original_sentence_text, compression_sentence_text, 0.6)
 
